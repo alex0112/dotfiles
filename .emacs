@@ -1,109 +1,96 @@
-;; Added by Package.el.  This must come before configurations of
-;; installed packages.  Don't delete this line.  If you don't want it,
-;; just comment it out by adding a semicolon to the start of the line.
-;; You may delete these explanatory comments.
-(package-initialize)
-(menu-bar-mode -1)
+;; Personal emacs configuration of Alex Larsen (kingsfoil)
+;;
+;; All color configuration in this file designed to be used with the iTerm theme "Sea Shells" found here:
+;; https://github.com/mbadolato/iTerm2-Color-Schemes#seashells
+;;
+;; If you build a man a fire, you keep him warm for one night. But if you light a man on fire: you keep him warm for the rest of his life.
+;;    -- Terry Pratchett
 
-;; Package archives
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-             ("org" . "https://orgmode.org/elpa/")
-             ("melpa" . "https://melpa.org/packages/")))
-;;("melpa" . "http://melpa.milkbox.net/packages/")))
-;;             ("marmalade" . "http://marmalade-repo.org/packages/")))
+; ----------------------------- Meta ----------------------------- ;
+(setq-default indent-tabs-mode nil) ;; never use tabs. More trouble than they're worth.
+(menu-bar-mode -1)                  ;;  (Turn off the top menu bar. No one has ever used it in the history of emacs -nw)
 
-(global-display-line-numbers-mode)
-(mood-line-mode)
+; ----------------------------- Use straight.el for package management ----------------------------- ;
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-;; == Use ivy with company mode ==
-(use-package ivy
-  :diminish (ivy-mode . "") ; prevents "ivy" from showing up in the mode line
-  :ensure t
-  :demand
-  :bind
-   (
-    ("M-x" . counsel-M-x)     ;; enable counsel mode (adds regex matching etc)
-    ("C-s" . swiper)          ;; show swiper matches using ivy
-    ("C-r" . swiper-backward) ;; same but backwards search
-   )
-  :config
-  (ivy-mode 1)
-  ;n(ivy-prescient-mode) ;; optional, show most recent selections at top
-  (setq ivy-height 5) ;; optional, set the number of suggestions to n
-  (setq ivy-use-selectable-prompt t) ;; optional, use user input rather than suggestion where there is not an exact match (e.g. in the subset of another word) 
-  )
+;; Notes:
+;; call `(straight-pull-recipe-repositories)` on occasion (or whenever this init file is run on a new system)
+;; This will ensure that we've fetched melpa, the emacs package mirror etc.
 
-(use-package company
-  :diminish (company-mode . "")
-  :ensure t
-  :pin melpa
-  :config
-  (global-company-mode)
-  (company-prescient-mode))
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+; ----------------------------- Package Listings (be sure to say what they do!) ----------------------------- ;
 
-(use-package counsel
-  :config
-  (ivy-configure 'counsel-M-x :initial-input "") ;; optional, ivy will suggest from the beginning of the string (^) by default.  This sets the inital string to empty ("")
-  )
+;; Easy for global overrides of default keys. The current keymap will be reorganized into the first galactic empire.
+(straight-use-package 'bind-key) ;; We're gonna need it for the remainder of the file.
 
-(require 'dap-elixir)
-(use-package lsp-mode
-    :commands lsp
-    :ensure t
-    :diminish lsp-mode
-    :hook
-    (elixir-mode . lsp)
-    :config
-    (setq lsp-clients-elixir-server-executable "/Users/alexlarsen/lsp/elixir-ls-0.5.0/release/language_server.sh"))
+;; Notes:
+;;   https://github.com/priyadarshan/bind-key
+;;   Use bind-key* to override everything inc. minor mode rebindings.
 
-(use-package avy
-  :ensure t
-  :bind
-  (("C-c j" . avy-goto-line)
-   ("C-M-j" . avy-goto-char)
-   ("C-j" . avy-goto-line)
-;   ("C-J" . avy-goto-word-0)
-;   ("C-x j" . avy-goto-char)
-;   ("C-x J" . avy-goto-char-2)
-   ))
+;; A minimalist mode line
+(straight-use-package 'feebleline)
+(feebleline-mode t)
 
-(use-package    feebleline
-  :ensure       t
-  :config       (setq feebleline-msg-functions
-                      '((feebleline-line-number         :post "" :fmt "%5s")
-                        (feebleline-column-number       :pre ":" :fmt "%-2s")
-                        (feebleline-file-directory      :face feebleline-dir-face :post "")
-                        (feebleline-file-or-buffer-name :face font-lock-keyword-face :post "")
-                        (feebleline-file-modified-star  :face font-lock-warning-face :post "")
-                        (feebleline-git-branch          :face feebleline-git-face :pre " : ")
-                        (feebleline-project-name        :align right)))
-  (setq feebleline-use-legacy-settings t)
-  (feebleline-mode 1))
+;; Notes:
+;;   https://github.com/tautologyclub/feebleline
+
+;; Avy: Because moving the cursor around is for plebs.
+;;  Avy allows for jumping around inside a file by creating labels at distinict points around a buffer or set of buffers.
+;;  An enterprising programmer at this point can jump between those points as a means of rapid navigation
+(straight-use-package 'avy)
+
+(bind-key* "M-j" 'avy-goto-line)
+(bind-key* "C-M-j" 'avy-goto-char)
+(bind-key* "C-j" 'avy-goto-word-0)
+
+;; Notes:
+;;   https://github.com/abo-abo/avy
+
+
+;; lsp-mode. Because no one wants fast emacs amirite?
+;; Lang server support, hooks, etc. go here.
+
+(straight-use-package 'lsp-mode)
+
+;; Notes:
+;;   https://github.com/emacs-lsp/lsp-mode/
+;;   https://emacs-lsp.github.io/lsp-mode/
+
+
+;; Yasnippet
+;; My snippet? Yes, Yasnippet.
+;;
+;; Nice templating system for various languages
+
+(straight-use-package 'yasnippet)
+(straight-use-package 'yasnippet-snippets)
+(yas-global-mode 1)
+
+;; Notes:
+;;   https://github.com/joaotavora/yasnippet
 
 
 
-;; ;; Custom Keybindings
-;; (define-key global-map (kbd "C-x C-r") 'revert-buffer)
+; ----------------------------- Custom keybindings: ----------------------------- ;
+
+;; Prefer `bind-key` over `global-set-key`, because... it hates me?
+(bind-key* (kbd "M-e e") (find-file "~/.emacs")) ;; quickly open the config file.
+
+;; Madness??? THIS. IS. EMACS!
 
 
-;; ;; == Do not edit by hand ==
-;; (custom-set-variables
-;;  ;; custom-set-variables was added by Custom.
-;;  ;; If you edit it by hand, you could mess it up, so be careful.
-;;  ;; Your init file should contain only one such instance.
-;;  ;; If there is more than one, they won't work right.
-;;  '(package-selected-packages
-;;    (quote
-;;     (js-react-redux-yasnippets rjsx-mode company-lsp company-prescient show-css rust-mode avy elfeed elixir-mode lsp-elixir lsp-ivy lsp-mode poly-markdown jekyll-modes ivy-prescient use-package markdown-preview-mode markdown-mode+ counsel-spotify counsel))))
-;; (custom-set-faces
-;;  ;; custom-set-faces was added by Custom.
-;;  ;; If you edit it by hand, you could mess it up, so be careful.
-;;  ;; Your init file should contain only one such instance.
-;;  ;; If there is more than one, they won't work right.
-;;  )
+; ----------------------------- CUSTOM VARS ----------------------------- ;
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -111,80 +98,59 @@
  ;; If there is more than one, they won't work right.
  '(achievements-mode t)
  '(custom-safe-themes
-   (quote
-    ("84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "b9e9ba5aeedcc5ba8be99f1cc9301f6679912910ff92fdf7980929c2fc83ab4d" "60940e1f2fa3f4e61e7a7ed9bab9c22676aa25f927d5915c8f0fa3a8bf529821" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default)))
- '(feebleline-mode t nil (feebleline))
+   '("84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "b9e9ba5aeedcc5ba8be99f1cc9301f6679912910ff92fdf7980929c2fc83ab4d" "60940e1f2fa3f4e61e7a7ed9bab9c22676aa25f927d5915c8f0fa3a8bf529821" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
  '(package-selected-packages
-   (quote
-    (rust-mode smooth-scroll smooth-scrolling sublimity doom-modeline zone-rainbow zone-nyan yasnippet writeroom-mode writegood-mode web-narrow-mode vterm use-package smbc smart-mode-line-powerline-theme smart-mode-line-atom-one-dark-theme selectric-mode reveal-in-osx-finder restart-emacs rainbow-fart php-mode nyan-mode multi-web-mode mood-line memento-mori markdown-preview-mode markdown-mode+ make-color major-mode-icons major-mode-hydra lsp-ui lsp-ivy ivy-prescient ivy-emoji hide-mode-line helm haskell-mode graphql-mode graphql gitignore-mode flymake-elixir flymake-easy flycheck-elixir feebleline exunit elixir-mode darkroom dap-mode counsel company-prescient company-lsp company-box all-the-icons-ivy-rich all-the-icons-ivy achievements 0blayout)))
- '(sml/mode-width
-   (if
-       (eq
-	(powerline-current-separator)
-	(quote arrow))
-       (quote right)
-     (quote full)))
+   '(dumb-jump flycheck-credo company-jedi minimap web-mode realgud wc-goal-mode wc-mode rust-mode smooth-scroll smooth-scrolling sublimity doom-modeline zone-rainbow zone-nyan yasnippet writeroom-mode writegood-mode web-narrow-mode vterm use-package smbc smart-mode-line-powerline-theme smart-mode-line-atom-one-dark-theme selectric-mode reveal-in-osx-finder restart-emacs rainbow-fart php-mode nyan-mode multi-web-mode mood-line memento-mori markdown-preview-mode markdown-mode+ make-color major-mode-icons major-mode-hydra lsp-ui lsp-ivy ivy-prescient ivy-emoji hide-mode-line helm haskell-mode graphql-mode graphql gitignore-mode flymake-elixir flymake-easy flycheck-elixir exunit elixir-mode darkroom dap-mode counsel company-prescient company-lsp company-box all-the-icons-ivy-rich all-the-icons-ivy achievements 0blayout))
+ '(sml/mode-width (if (eq (powerline-current-separator) 'arrow) 'right 'full))
  '(sml/pos-id-separator
-   (quote
-    (""
+   '(""
      (:propertize " " face powerline-active1)
      (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (car powerline-default-separator-dir)))
-		   (quote powerline-active1)
-		   (quote powerline-active2))))
-     (:propertize " " face powerline-active2))))
+      (propertize " " 'display
+                  (funcall
+                   (intern
+                    (format "powerline-%s-%s"
+                            (powerline-current-separator)
+                            (car powerline-default-separator-dir)))
+                   'powerline-active1 'powerline-active2)))
+     (:propertize " " face powerline-active2)))
  '(sml/pos-minor-modes-separator
-   (quote
-    (""
+   '(""
      (:propertize " " face powerline-active1)
      (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (cdr powerline-default-separator-dir)))
-		   (quote powerline-active1)
-		   (quote sml/global))))
-     (:propertize " " face sml/global))))
+      (propertize " " 'display
+                  (funcall
+                   (intern
+                    (format "powerline-%s-%s"
+                            (powerline-current-separator)
+                            (cdr powerline-default-separator-dir)))
+                   'powerline-active1 'sml/global)))
+     (:propertize " " face sml/global)))
  '(sml/pre-id-separator
-   (quote
-    (""
+   '(""
      (:propertize " " face sml/global)
      (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (car powerline-default-separator-dir)))
-		   (quote sml/global)
-		   (quote powerline-active1))))
-     (:propertize " " face powerline-active1))))
+      (propertize " " 'display
+                  (funcall
+                   (intern
+                    (format "powerline-%s-%s"
+                            (powerline-current-separator)
+                            (car powerline-default-separator-dir)))
+                   'sml/global 'powerline-active1)))
+     (:propertize " " face powerline-active1)))
  '(sml/pre-minor-modes-separator
-   (quote
-    (""
+   '(""
      (:propertize " " face powerline-active2)
      (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (cdr powerline-default-separator-dir)))
-		   (quote powerline-active2)
-		   (quote powerline-active1))))
-     (:propertize " " face powerline-active1))))
- '(sml/pre-modes-separator (propertize " " (quote face) (quote sml/modes)))
+      (propertize " " 'display
+                  (funcall
+                   (intern
+                    (format "powerline-%s-%s"
+                            (powerline-current-separator)
+                            (cdr powerline-default-separator-dir)))
+                   'powerline-active2 'powerline-active1)))
+     (:propertize " " face powerline-active1)))
+ '(sml/pre-modes-separator (propertize " " 'face 'sml/modes))
  '(window-divider-default-right-width 1))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -195,25 +161,32 @@
  '(avy-lead-face-0 ((t (:background "green" :foreground "white"))))
  '(avy-lead-face-2 ((t (:background "red" :foreground "white"))))
  '(elixir-atom-face ((t (:inherit nil :foreground "brightred"))))
- '(font-lock-comment-face ((t (:foreground "red"))))
+ '(elixir-attribute-face ((t (:inherit (default font-lock-preprocessor-face) :foreground "brightcyan"))))
+ '(font-lock-builtin-face ((t (:foreground "brightwhite"))))
+ '(font-lock-comment-face ((t (:foreground "color-208"))))
+ '(font-lock-doc-face ((t (:inherit font-lock-string-face :foreground "color-76"))))
  '(font-lock-function-name-face ((t (:foreground "yellow"))))
  '(font-lock-keyword-face ((t (:foreground "brightblue"))))
- '(font-lock-string-face ((t (:foreground "color-28"))))
- '(font-lock-type-face ((t (:foreground "color-27"))))
+ '(font-lock-string-face ((t (:foreground "color-34"))))
+ '(font-lock-type-face ((t (:foreground "magenta"))))
  '(font-lock-variable-name-face ((t (:foreground "yellow"))))
  '(highlight ((t (:background "color-17"))))
  '(isearch ((t (:background "color-16" :foreground "color-46"))))
  '(isearch-fail ((t (:background "color-16" :foreground "color-124"))))
  '(ivy-minibuffer-match-face-1 ((t (:background "color-136"))))
  '(lazy-highlight ((t (:background "color-34"))))
+ '(markdown-markup-face ((t (:inherit shadow :foreground "brightmagenta" :slant normal :weight normal))))
+ '(markdown-pre-face ((t (:inherit (markdown-code-face font-lock-constant-face) :foreground "color-46"))))
  '(menu ((t (:background "brightyellow" :foreground "color-16" :inverse-video t))))
  '(minibuffer-prompt ((t (:foreground "magenta"))))
+ '(minimap-active-region-background ((t (:extend t :background "blue"))))
  '(mode-line ((t (:background "grey75" :foreground "black" :height 0.9))))
  '(mood-line-status-info ((t (:inherit default :foreground "color-27"))))
  '(package-description ((t (:foreground "brightwhite" :slant italic))))
  '(package-name ((t (:foreground "brightblue" :underline nil))))
  '(package-status-available ((t (:foreground "yellow"))))
  '(package-status-installed ((t (:inherit nil :foreground "color-41" :underline (:color "color-41" :style wave)))))
+ '(region ((t (:extend t :background "black"))))
  '(vertical-border ((t (:foreground "black" :width condensed))))
  '(web-mode-block-delimiter-face ((t (:inherit font-lock-preprocessor-face :foreground "brightred"))))
  '(web-mode-builtin-face ((t (:inherit font-lock-builtin-face :foreground "color-105"))))
