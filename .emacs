@@ -80,6 +80,17 @@
 ;; Notes:
 ;;   https://github.com/joaotavora/yasnippet
 
+;; Elixir
+(straight-use-package 'elixir-mode)
+
+;; Notes:
+;;   It's a major mode for elixir. Duh.
+
+;; Docker? I 'ardly know 'er!
+(straight-use-package 'dockerfile-mode)
+
+;; Notes:
+;;   https://github.com/spotify/dockerfile-mode
 
 
 ; ----------------------------- Custom keybindings: ----------------------------- ;
