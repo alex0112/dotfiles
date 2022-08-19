@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: ExUnit describe block
+# key: ds
+# --
+describe "${func_name}" do
+  $0
+end

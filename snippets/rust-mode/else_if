@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: else if
+# key: eliff
+# --
+else if ${expr} {
+   $0
+}

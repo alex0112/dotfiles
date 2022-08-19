@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: New function def
+# key: fn
+# --
+fn ${name}(${args}) {
+   $0
+}

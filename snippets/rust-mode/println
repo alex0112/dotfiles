@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Print with newline macro
+# key: p
+# --
+println!("$0")

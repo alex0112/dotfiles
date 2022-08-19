@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Lambda
+# key: fn 
+# --
+fn ${args} -> $0 end

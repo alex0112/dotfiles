@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Define Function
+# key: m
+# --
+fn main() {
+   $0
+}

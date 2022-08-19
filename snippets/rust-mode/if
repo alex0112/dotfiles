@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: if
+# key: iff
+# --
+if ${expr} {
+   $0
+}
+

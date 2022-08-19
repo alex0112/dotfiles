@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Define Private Function
+# key: p
+# --
+defp ${func_name}(${args}) do
+  $0
+end

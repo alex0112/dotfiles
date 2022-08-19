@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Define Function
+# key: d
+# --
+def ${func_name}(${args}) do
+  $0
+end

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: else if (short)
+# key: elif
+# --
+else if ${expr} { $0; }

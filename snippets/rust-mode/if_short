@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: if (single line)
+# key: if
+# --
+if ${expr} { $0; }

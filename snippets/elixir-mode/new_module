@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Define new module
+# key: m
+# --
+defmodule ${module_name} do
+    $0
+end

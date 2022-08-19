@@ -28,7 +28,6 @@
 ;; call `(straight-pull-recipe-repositories)` on occasion (or whenever this init file is run on a new system)
 ;; This will ensure that we've fetched melpa, the emacs package mirror etc.
 
-
 ; ----------------------------- Package Listings (be sure to say what they do!) ----------------------------- ;
 
 ;; Easy for global overrides of default keys. The current keymap will be reorganized into the first galactic empire.
@@ -54,15 +53,14 @@
 (bind-key* "C-M-j" 'avy-goto-char)
 (bind-key* "C-j" 'avy-goto-word-0)
 
+
 ;; Notes:
 ;;   https://github.com/abo-abo/avy
 
 
 ;; lsp-mode. Because no one wants fast emacs amirite?
 ;; Lang server support, hooks, etc. go here.
-
 (straight-use-package 'lsp-mode)
-
 ;; Notes:
 ;;   https://github.com/emacs-lsp/lsp-mode/
 ;;   https://emacs-lsp.github.io/lsp-mode/
@@ -74,24 +72,82 @@
 ;; Nice templating system for various languages
 
 (straight-use-package 'yasnippet)
-(straight-use-package 'yasnippet-snippets)
 (yas-global-mode 1)
 
 ;; Notes:
 ;;   https://github.com/joaotavora/yasnippet
 
+;; Rainbow Delimiters
+(straight-use-package 'rainbow-delimiters)
+(add-hook 'prog-mode-hook #'rainbow-delimiters-mode) ;; use in programming modes
+
+;; Notes:
+;;   This one highlights parens etc. with differing colors
+;;   in order to make it more apparent who matches with whom.
+
+;; Flycheck
+(straight-use-package 'flycheck)
+;; Notes:
+;;   https://www.flycheck.org/en/latest/user/installation.html
+
 ;; Elixir
 (straight-use-package 'elixir-mode)
 
 ;; Notes:
-;;   It's a major mode for elixir. Duh.
+;;   It's a major mode for Elixir. Duh.
+(straight-use-package 'rust-mode)
+;; Rust
+
+;; Notes:
+;;   It's a major mode for Rust. This isn't that hard.
+
+;; Credo
+(straight-use-package 'flycheck-credo)
+(eval-after-load 'flycheck
+  '(flycheck-credo-setup))
+(add-hook 'elixir-mode-hook 'flycheck-mode)
+;; Notes:
+;;   Use flycheck to report linter errors from credo on the fly
+;;   https://github.com/aaronjensen/flycheck-credo
+
+;; Alchemist.el
+(straight-use-package 'alchemist)
+
+;; Notes:
+;;   https://github.com/tonini/alchemist.el
+
+
+;; HCL. Like hydrochloric acid.
+(straight-use-package 'hcl-mode)
+;; Notes:
+;;   https://github.com/syohex/emacs-hcl-mode
 
 ;; Docker? I 'ardly know 'er!
-(straight-use-package 'dockerfile-mode)
-
+; -- removed temporarily --
 ;; Notes:
 ;;   https://github.com/spotify/dockerfile-mode
 
+;; GitLab CI YAML files:
+(straight-use-package 'gitlab-ci-mode)
+
+;; Notes:
+;;   https://gitlab.com/joewreschnig/gitlab-ci-mode/
+
+;; Markdown
+;;(straight-use-package 'markdown-preview-eww)
+(straight-use-package 'grip-mode)
+;; Notes:
+;;   
+
+;; Ripgrep. As in, RIP grep, you will have a fond place in our hearts, always. Rust is the future.
+
+;; Notes:
+;;  Did you know the original version of grep was written by Ken Thompson (as in K&R) in PDP-11 assembly? Legendary.
+
+;; It would be *dumb* not to *jump* around with ripgrep. I mean c'mon.
+(straight-use-package 'dumb-jump)
+;; Notes:
+;;  https://github.com/jacktasia/dumb-jump
 
 ; ----------------------------- Custom keybindings: ----------------------------- ;
 
@@ -171,22 +227,23 @@
  '(avy-lead-face ((t (:background "red" :foreground "white"))))
  '(avy-lead-face-0 ((t (:background "green" :foreground "white"))))
  '(avy-lead-face-2 ((t (:background "red" :foreground "white"))))
- '(elixir-atom-face ((t (:inherit nil :foreground "brightred"))))
- '(elixir-attribute-face ((t (:inherit (default font-lock-preprocessor-face) :foreground "brightcyan"))))
- '(font-lock-builtin-face ((t (:foreground "brightwhite"))))
- '(font-lock-comment-face ((t (:foreground "color-208"))))
- '(font-lock-doc-face ((t (:inherit font-lock-string-face :foreground "color-76"))))
+ '(elixir-atom-face ((t (:inherit nil :foreground "deepskyblue"))))
+ '(elixir-attribute-face ((t (:inherit (default font-lock-preprocessor-face) :foreground "skyblue1"))))
+ '(font-lock-builtin-face ((t (:foreground "dodgerblue1"))))
+ '(font-lock-comment-face ((t (:foreground "orangered"))))
+ '(font-lock-constant-face ((t (:foreground "indianred"))))
+ '(font-lock-doc-face ((t (:inherit font-lock-string-face :foreground "green"))))
  '(font-lock-function-name-face ((t (:foreground "yellow"))))
- '(font-lock-keyword-face ((t (:foreground "brightblue"))))
- '(font-lock-string-face ((t (:foreground "color-34"))))
- '(font-lock-type-face ((t (:foreground "magenta"))))
- '(font-lock-variable-name-face ((t (:foreground "yellow"))))
+ '(font-lock-keyword-face ((t (:foreground "cornflowerblue"))))
+ '(font-lock-string-face ((t (:foreground "green"))))
+ '(font-lock-type-face ((t (:foreground "lightskyblue"))))
+ '(font-lock-variable-name-face ((t (:foreground "darkorange"))))
  '(highlight ((t (:background "color-17"))))
  '(isearch ((t (:background "color-16" :foreground "color-46"))))
  '(isearch-fail ((t (:background "color-16" :foreground "color-124"))))
  '(ivy-minibuffer-match-face-1 ((t (:background "color-136"))))
  '(lazy-highlight ((t (:background "color-34"))))
- '(markdown-markup-face ((t (:inherit shadow :foreground "brightmagenta" :slant normal :weight normal))))
+ '(markdown-markup-face ((t (:inherit shadow :foreground "mistyrose" :slant normal :weight normal))))
  '(markdown-pre-face ((t (:inherit (markdown-code-face font-lock-constant-face) :foreground "color-46"))))
  '(menu ((t (:background "brightyellow" :foreground "color-16" :inverse-video t))))
  '(minibuffer-prompt ((t (:foreground "magenta"))))

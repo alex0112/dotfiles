@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: ExUnit test block
+# key: ts
+# --
+test "${case}" do
+  $0
+end
