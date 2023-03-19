@@ -24,11 +24,115 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+;; Use the use package macro when calling (use-package ...)
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+
 ;; Notes:
+;; Since you always forget: https://jeffkreeftmeijer.com/emacs-straight-use-package
+;;
 ;; call `(straight-pull-recipe-repositories)` on occasion (or whenever this init file is run on a new system)
 ;; This will ensure that we've fetched melpa, the emacs package mirror etc.
 
 ; ----------------------------- Package Listings (be sure to say what they do!) ----------------------------- ;
+(use-package vertico
+  :init
+  (vertico-mode)
+
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  ;; (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  ;; (setq vertico-cycle t)
+)
+
+(use-package corfu
+  ;; Optional customizations
+  ;; :custom
+  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  ;; (corfu-auto t)                 ;; Enable auto completion
+  ;; (corfu-separator ?\s)          ;; Orderless field separator
+  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect-first nil)    ;; Disable candidate preselection
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+
+  ;; Enable Corfu only for certain modes.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  ;; Recommended: Enable Corfu globally.
+  ;; This is recommended since Dabbrev can be used globally (M-/).
+  ;; See also `corfu-excluded-modes'.
+  :init
+  (global-corfu-mode))
+
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  ;; Other useful Dabbrev configurations.
+  :custom
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
+
+(straight-use-package
+ '(corfu-terminal
+   :type git
+   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
+
+(unless (display-graphic-p)
+  (corfu-terminal-mode +1))
+
+;; Add extensions
+(use-package cape
+  ;; Bind dedicated completion commands
+  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  :bind (("M-c" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("M-i" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p h" . cape-history)
+         ("C-c p f" . cape-file)
+         ("C-c p k" . cape-keyword)
+         ("C-c p s" . cape-symbol)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p i" . cape-ispell)
+         ("C-c p l" . cape-line)
+         ("C-c p w" . cape-dict)
+         ("C-c p \\" . cape-tex)
+         ("C-c p _" . cape-tex)
+         ("C-c p ^" . cape-tex)
+         ("C-c p &" . cape-sgml)
+         ("C-c p r" . cape-rfc1345))
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-history)
+  ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+)
 
 ;; Easy for global overrides of default keys. The current keymap will be reorganized into the first galactic empire.
 (straight-use-package 'bind-key) ;; We're gonna need it for the remainder of the file.
@@ -36,6 +140,14 @@
 ;; Notes:
 ;;   https://github.com/priyadarshan/bind-key
 ;;   Use bind-key* to override everything inc. minor mode rebindings.
+
+;; Use olivetti as a minor mode for writing
+(straight-use-package 'olivetti) 
+
+;; Notes:
+;;   https://github.com/rnkn/olivetti
+;;   Emacs minor mode to automatically balance window margins 
+
 
 ;; A minimalist mode line
 (straight-use-package 'feebleline)
@@ -53,10 +165,8 @@
 (bind-key* "C-M-j" 'avy-goto-char)
 (bind-key* "C-j" 'avy-goto-word-0)
 
-
 ;; Notes:
 ;;   https://github.com/abo-abo/avy
-
 
 ;; lsp-mode. Because no one wants fast emacs amirite?
 ;; Lang server support, hooks, etc. go here.
@@ -64,7 +174,6 @@
 ;; Notes:
 ;;   https://github.com/emacs-lsp/lsp-mode/
 ;;   https://emacs-lsp.github.io/lsp-mode/
-
 
 ;; Yasnippet
 ;; My snippet? Yes, Yasnippet.
@@ -92,14 +201,34 @@
 
 ;; Elixir
 (straight-use-package 'elixir-mode)
-
 ;; Notes:
 ;;   It's a major mode for Elixir. Duh.
-(straight-use-package 'rust-mode)
-;; Rust
 
+;; Rust
+(straight-use-package 'rust-mode)
 ;; Notes:
 ;;   It's a major mode for Rust. This isn't that hard.
+
+;; Nushell
+(straight-use-package
+ '(nushell-mode :type git :host github :repo "azzamsa/emacs-nushell"))
+;; Notes:
+;;   Major mode for nushell scripts
+
+;; JSX Mode
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . rjsx-mode)) ;; Ensure that we load for typescript as well
+(setq js-indent-level 2) ;; Honestly this should be true for all js files. Idk why emacs doesn't have a sane default here.
+(use-package rjsx-mode
+  :config
+  ;;(setq-local indent-line-function 'js-jsx-indent-line) ;; Ignore the package default for indentation. I hate it.
+
+  (define-key rjsx-mode-map "<" nil) ;; Not a huge fan of these either.
+  (define-key rjsx-mode-map (kbd "C-d") nil) ;; Seriously just let me type.
+  (define-key rjsx-mode-map ">" nil) ;; If I really want magic symbols popping up out of nowhere I have yasnippet
+  )
+;; Notes:
+;;   Sometimes you gotta write react. This is a nice jsx major mode;
+;;   https://github.com/felipeochoa/rjsx-mode
 
 ;; Credo
 (straight-use-package 'flycheck-credo)
@@ -110,12 +239,10 @@
 ;;   Use flycheck to report linter errors from credo on the fly
 ;;   https://github.com/aaronjensen/flycheck-credo
 
-;; Alchemist.el
-(straight-use-package 'alchemist)
-
+;; Alchemist.el (not using for the time being)
+;;;; (straight-use-package 'alchemist)
 ;; Notes:
 ;;   https://github.com/tonini/alchemist.el
-
 
 ;; HCL. Like hydrochloric acid.
 (straight-use-package 'hcl-mode)
@@ -140,7 +267,7 @@
 ;;   
 
 ;; Ripgrep. As in, RIP grep, you will have a fond place in our hearts, always. Rust is the future.
-
+;;  -- removed temporarily --
 ;; Notes:
 ;;  Did you know the original version of grep was written by Ken Thompson (as in K&R) in PDP-11 assembly? Legendary.
 
