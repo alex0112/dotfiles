@@ -1,4 +1,4 @@
-;; Personal emacs configuration of Alex Larsen (kingsfoil)
+;; Personal emacs configuration of Alex Larsen (kingsfoil) 
 ;;
 ;; All color configuration in this file designed to be used with the iTerm theme "Sea Shells" found here:
 ;; https://github.com/mbadolato/iTerm2-Color-Schemes#seashells
@@ -179,7 +179,6 @@
 ;; My snippet? Yes, Yasnippet.
 ;;
 ;; Nice templating system for various languages
-
 (straight-use-package 'yasnippet)
 (yas-global-mode 1)
 
@@ -213,7 +212,7 @@
 (straight-use-package
  '(nushell-mode :type git :host github :repo "azzamsa/emacs-nushell"))
 ;; Notes:
-;;   Major mode for nushell scripts
+;;   Major mode for nushell scripts. Do I gotta spell it out?
 
 ;; JSX Mode
 (add-to-list 'auto-mode-alist '("\\.tsx\\'" . rjsx-mode)) ;; Ensure that we load for typescript as well
@@ -229,6 +228,18 @@
 ;; Notes:
 ;;   Sometimes you gotta write react. This is a nice jsx major mode;
 ;;   https://github.com/felipeochoa/rjsx-mode
+
+;; Just in Time Spell Checker (jit-spell)
+;; (use-package jit-spell
+;;   :config
+;;     (define-key jit-spell-mode-map (kbd "C-m") 'jit-spell-correct-word) ;; bind C-; to spell check
+;;     ;; (bind-key* (kbd "C-;") (jit-spell-correct-word)) 
+;;   )
+;; (add-hook 'text-mode-hook 'jit-spell-mode)
+;; (add-hook 'prog-mode-hook 'jit-spell-mode)
+;; Notes:
+;;; Doesn't really work. Not using.
+;;;  https://github.com/astoff/jit-spell
 
 ;; Credo
 (straight-use-package 'flycheck-credo)
