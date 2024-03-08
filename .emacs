@@ -2,13 +2,14 @@
 ;;
 ;; All color configuration in this file designed to be used with the iTerm theme "Sea Shells" found here:
 ;; https://github.com/mbadolato/iTerm2-Color-Schemes#seashells
-;;
+;
 ;; If you build a man a fire, you keep him warm for one night. But if you light a man on fire: you keep him warm for the rest of his life.
 ;;    -- Terry Pratchett
 
 ; ----------------------------- Meta ----------------------------- ;
 (setq-default indent-tabs-mode nil) ;; never use tabs. More trouble than they're worth.
 (menu-bar-mode -1)                  ;;  (Turn off the top menu bar. No one has ever used it in the history of emacs -nw)
+(setq vc-follow-symlinks t)
 
 ; ----------------------------- Use straight.el for package management ----------------------------- ;
 (defvar bootstrap-version)
@@ -35,6 +36,8 @@
 ;; This will ensure that we've fetched melpa, the emacs package mirror etc.
 
 ; ----------------------------- Package Listings (be sure to say what they do!) ----------------------------- ;
+
+
 (use-package vertico
   :init
   (vertico-mode)
@@ -79,7 +82,7 @@
 
 (use-package dabbrev
   ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
+  :bind (("M-/" . dabbrev-completion)     
          ("C-M-/" . dabbrev-expand))
   ;; Other useful Dabbrev configurations.
   :custom
@@ -102,7 +105,7 @@
 (use-package cape
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :bind (("M-c" . completion-at-point) ;; capf
+  :bind (("C-t" . completion-at-point) ;; capf
          ("C-c p t" . complete-tag)        ;; etags
          ("M-i" . cape-dabbrev)        ;; or dabbrev-completion
          ("C-c p h" . cape-history)
@@ -170,8 +173,68 @@
 
 ;; lsp-mode. Because no one wants fast emacs amirite?
 ;; Lang server support, hooks, etc. go here.
-(straight-use-package 'lsp-mode)
+;; (straight-use-package 'lsp-mode)
+
+ (use-package rustic
+  :ensure
+  :bind (:map rustic-mode-map
+              ;("M-j" . lsp-ui-imenu)
+              ("M-?" . lsp-find-references)
+              ("C-c C-c l" . flycheck-list-errors)
+              ("C-c C-c a" . lsp-execute-code-action)
+              ("C-c C-c r" . lsp-rename)
+              ("C-c C-c q" . lsp-workspace-restart)
+              ("C-c C-c Q" . lsp-workspace-shutdown)
+              ("C-c C-c s" . lsp-rust-analyzer-status)
+              ("C-c C-c e" . lsp-rust-analyzer-expand-macro)
+              ("C-c C-c d" . dap-hydra)
+              ("C-c C-c h" . lsp-ui-doc-glance))
+  :config)
+  ;; uncomment for less flashiness
+  ;; (setq lsp-eldoc-hook nil)
+  ;; (setq lsp-enable-symbol-highlighting nil)
+  ;; (setq lsp-signature-auto-activate nil)
+
+
+  ;; comment to disable rustfmt on save
+  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook)
+
+(defun rk/rustic-mode-hook ()
+  ;; so that run C-c C-c C-r works without having to confirm, but don't try to
+  ;; save rust buffers that are not file visiting. Once
+  ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
+  ;; no longer be necessary.
+  (when buffer-file-name
+    (setq-local buffer-save-without-query t))
+  (add-hook 'before-save-hook 'lsp-format-buffer nil t))
+
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+;; for rust-analyzer integration
+
+(use-package lsp-mode
+  :ensure
+  :commands lsp
+  :custom
+  ;; what to use when checking on-save. "check" is default, using clippy
+  (lsp-rust-analyzer-cargo-watch-command "clippy")
+  (lsp-eldoc-render-all t)
+  (lsp-idle-delay 0.6)
+  ;; This controls the overlays that display type and other hints inline. Enable
+  ;; / disable as you prefer. Well require a `lsp-workspace-restart' to have an
+  ;; effect on open projects.
+  (lsp-rust-analyzer-server-display-inlay-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
+  (lsp-rust-analyzer-display-chaining-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
+  (lsp-rust-analyzer-display-closure-return-type-hints t)
+  (lsp-rust-analyzer-display-parameter-hints nil)
+  (lsp-rust-analyzer-display-reborrow-hints nil)
+  :config
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
 ;; Notes:
+;; The rust stuff here was cribbed from: https://github.com/rksm/emacs-rust-config/blob/master/init.el
+;; which is what is built in the tutorial: https://robert.kra.hn/posts/rust-emacs-setup/
 ;;   https://github.com/emacs-lsp/lsp-mode/
 ;;   https://emacs-lsp.github.io/lsp-mode/
 
@@ -204,9 +267,43 @@
 ;;   It's a major mode for Elixir. Duh.
 
 ;; Rust
-(straight-use-package 'rust-mode)
+;; (use-package rustic
+;;   :ensure
+;;   :bind (:map rustic-mode-map
+;;               ("M-j" . lsp-ui-imenu)
+;;               ("M-?" . lsp-find-references)
+;;               ("C-c C-c l" . flycheck-list-errors)
+;;               ("C-c C-c a" . lsp-execute-code-action)
+;;               ("C-c C-c r" . lsp-rename)
+;;               ("C-c C-c q" . lsp-workspace-restart)
+;;               ("C-c C-c Q" . lsp-workspace-shutdown)
+;;               ("C-c C-c s" . lsp-rust-analyzer-status)
+;;               ("C-c C-c e" . lsp-rust-analyzer-expand-macro)
+;;               ("C-c C-c d" . dap-hydra)
+;;               ("C-c C-c h" . lsp-ui-doc-glance))
+;;   :config
+  ;; uncomment for less flashiness
+  ;; (setq lsp-eldoc-hook nil)
+  ;; (setq lsp-enable-symbol-highlighting nil)
+  ;; (setq lsp-signature-auto-activate nil)
+
+  ;; comment to disable rustfmt on save
+  ;; (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
+
+;; (defun rk/rustic-mode-hook ()
+;;   ;; so that run C-c C-c C-r works without having to confirm, but don't try to
+;;   ;; save rust buffers that are not file visiting. Once
+;;   ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
+;;   ;; no longer be necessary.
+;;   (when buffer-file-name
+;;     (setq-local buffer-save-without-query t))
+;;   (add-hook 'before-save-hook 'lsp-format-buffer nil t))
+
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+;; for rust-analyzer integration
 ;; Notes:
-;;   It's a major mode for Rust. This isn't that hard.
+;;   See https://github.com/brotzeit/rustic (it's an alternative to rust-mode)
+;;   This was recommended by the tutorial here: https://robert.kra.hn/posts/rust-emacs-setup/
 
 ;; Nushell
 (straight-use-package
@@ -277,6 +374,23 @@
 ;; Notes:
 ;;   
 
+;; Fuzzy Finder
+(use-package fzf
+  :bind
+    ;; Don't forget to set keybinds!
+  :config
+  (setq fzf/args "-x --color bw --print-query --margin=1,0 --no-hscroll"
+        fzf/executable "fzf"
+        fzf/git-grep-args "-i --line-number %s"
+        ;; command used for `fzf-grep-*` functions
+        ;; example usage for ripgrep:
+        ;; fzf/grep-command "rg --no-heading -nH"
+        fzf/grep-command "grep -nrH"
+        ;; If nil, the fzf buffer will appear at the top of the window
+        fzf/position-bottom t
+        fzf/window-height 15))
+
+
 ;; Ripgrep. As in, RIP grep, you will have a fond place in our hearts, always. Rust is the future.
 ;;  -- removed temporarily --
 ;; Notes:
@@ -287,13 +401,27 @@
 ;; Notes:
 ;;  https://github.com/jacktasia/dumb-jump
 
+;; Because why not?
+;; Run a nyan cat with M-x zone-nyan-preview
+(use-package zone-nyan)
+;; Notes:
+;;  https://github.com/emacsmirror/zone-nyan
+
+;; Vue
+(use-package vue-mode)
+
+(add-hook 'mmm-mode-hook ;; mmm-mode comes with the ugliest background colors known to the human race.
+          (lambda ()     ;; turn them off.
+            (set-face-background 'mmm-default-submode-face nil)))
+;; Notes:
+;;   https://github.com/AdamNiederer/vue-mode
+
 ; ----------------------------- Custom keybindings: ----------------------------- ;
 
 ;; Prefer `bind-key` over `global-set-key`, because... it hates me?
 (bind-key* (kbd "M-e e") (find-file "~/.emacs")) ;; quickly open the config file.
 
 ;; Madness??? THIS. IS. EMACS!
-
 
 ; ----------------------------- CUSTOM VARS ----------------------------- ;
 (custom-set-variables
@@ -356,12 +484,14 @@
                    'powerline-active2 'powerline-active1)))
      (:propertize " " face powerline-active1)))
  '(sml/pre-modes-separator (propertize " " 'face 'sml/modes))
+ '(warning-suppress-types '((comp) (comp)))
  '(window-divider-default-right-width 1))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-black ((t (:background "cadetblue" :foreground "black"))))
  '(avy-lead-face ((t (:background "red" :foreground "white"))))
  '(avy-lead-face-0 ((t (:background "green" :foreground "white"))))
  '(avy-lead-face-2 ((t (:background "red" :foreground "white"))))
@@ -381,6 +511,7 @@
  '(isearch-fail ((t (:background "color-16" :foreground "color-124"))))
  '(ivy-minibuffer-match-face-1 ((t (:background "color-136"))))
  '(lazy-highlight ((t (:background "color-34"))))
+ '(lv-separator ((t (:background "darkslategray"))))
  '(markdown-markup-face ((t (:inherit shadow :foreground "mistyrose" :slant normal :weight normal))))
  '(markdown-pre-face ((t (:inherit (markdown-code-face font-lock-constant-face) :foreground "color-46"))))
  '(menu ((t (:background "brightyellow" :foreground "color-16" :inverse-video t))))
@@ -392,7 +523,7 @@
  '(package-name ((t (:foreground "brightblue" :underline nil))))
  '(package-status-available ((t (:foreground "yellow"))))
  '(package-status-installed ((t (:inherit nil :foreground "color-41" :underline (:color "color-41" :style wave)))))
- '(region ((t (:extend t :background "black"))))
+ '(region ((t (:extend t :background "gray1"))))
  '(vertical-border ((t (:foreground "black" :width condensed))))
  '(web-mode-block-delimiter-face ((t (:inherit font-lock-preprocessor-face :foreground "brightred"))))
  '(web-mode-builtin-face ((t (:inherit font-lock-builtin-face :foreground "color-105"))))
