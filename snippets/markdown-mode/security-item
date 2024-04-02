@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: npm audit output and remediation
+# key: npm
+# --
+
+#### $0
+**NPM Audit Output:**
+
+**Impact:**
+
+**Remediation:**

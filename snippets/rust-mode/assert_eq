@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: assert_eq
+# key: as
+# --
+
+assert_eq!(${expr}, $0);

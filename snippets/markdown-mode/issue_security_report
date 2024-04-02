@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: security issue report
+# key: iss
+# --
+
+### Issue: ${title}
+$0
+
+### Impact:
+
+### Remediation:
+

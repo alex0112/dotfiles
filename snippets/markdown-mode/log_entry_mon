@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: monday log entry
+# key: mon
+# --
+
+## ${date} Monday 10:45am-2:15pm
+$0
+
+### Accomplished today:
+
+### Pick Up Next Time:

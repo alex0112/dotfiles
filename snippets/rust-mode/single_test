@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: single test function
+# key: tst
+# --
+
+#[test]
+fn test_${function}() {
+   $0
+}
+

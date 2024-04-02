@@ -2,6 +2,6 @@
 # name: New function def
 # key: fn
 # --
-fn ${name}(${args}) {
-   $0
+fn ${name}(${args}) -> ${return_type} {
+   ${todo!()}
 }

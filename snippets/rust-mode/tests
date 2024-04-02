@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: tests module
+# key: tests
+# --
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_${function}() {
+        assert_eq!($0);
+    }
+
+}
