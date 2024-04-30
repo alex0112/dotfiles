@@ -1,0 +1,10 @@
++linkedin.com/in/*
++linkedin.com/search/*
++news.ycombinator.com/item*
++reddit.com/r/*/comment*
+facebook.com
+linkedin.com
+news.ycombinator.com
+reddit.com
+www.smbc-comics.com
+xkcd.com
