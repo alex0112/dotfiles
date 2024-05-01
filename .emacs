@@ -1,4 +1,4 @@
-;; Personal emacs configuration of Alex Larsen (kingsfoil) 
+;; Personal emacs configuration of Alex Larsen (kingsfoil)
 ;;
 ;; All color configuration in this file designed to be used with the iTerm theme "Sea Shells" found here:
 ;; https://github.com/mbadolato/iTerm2-Color-Schemes#seashells
@@ -80,9 +80,16 @@
   :init
   (global-corfu-mode))
 
+;; Make corfu popup come up in terminal overlay
+(use-package corfu-terminal
+  :if (not (display-graphic-p))
+  :ensure t
+  :config
+  (corfu-terminal-mode))
+
 (use-package dabbrev
   ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)     
+  :bind (("M-/" . dabbrev-completion)
          ("C-M-/" . dabbrev-expand))
   ;; Other useful Dabbrev configurations.
   :custom
@@ -92,14 +99,6 @@
 (use-package savehist
   :init
   (savehist-mode))
-
-(straight-use-package
- '(corfu-terminal
-   :type git
-   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
-
-(unless (display-graphic-p)
-  (corfu-terminal-mode +1))
 
 ;; Add extensions
 (use-package cape
@@ -137,6 +136,61 @@
   ;;(add-to-list 'completion-at-point-functions #'cape-line)
 )
 
+;; Orderless: powerful completion style
+;; Very optional---you can get fzf like completions----config can be
+;; extensive (of course---it's Emacs)
+(use-package orderless
+  :ensure t
+  :config
+  (setq completion-styles '(orderless)))
+
+;; Consult: Misc. enhanced commands
+(use-package consult
+  :ensure t
+  :bind (
+         ;; Drop-in replacements
+         ("C-x b" . consult-buffer)     ; orig. switch-to-buffer
+         ("M-y"   . consult-yank-pop)   ; orig. yank-pop
+         ;; Searching
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)       ; Alternative: rebind C-s to use
+         ("M-s s" . consult-line)       ; consult-line instead of isearch, bind
+         ("M-s L" . consult-line-multi) ; isearch to M-s s
+         ("M-s o" . consult-outline)
+         ;; Isearch integration
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)   ; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history) ; orig. isearch-edit-string
+         ("M-s l" . consult-line)            ; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)      ; needed by consult-line to detect isearch
+         )
+  :config
+  ;; Narrowing lets you restrict results to certain groups of candidates
+  (setq consult-narrow-key "<"))
+
+(use-package embark
+  :ensure t
+  :demand t
+  :after avy
+  :bind (("C-c a" . embark-act))        ; bind this to an easy key to hit
+  :init
+  ;; Add the option to run embark when using avy
+  (defun bedrock/avy-action-embark (pt)
+    (unwind-protect
+        (save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+
+  ;; After invoking avy-goto-char-timer, hit "." to run embark at the next
+  ;; candidate you select
+  (setf (alist-get ?. avy-dispatch-alist) 'bedrock/avy-action-embark))
+
+(use-package embark-consult
+  :ensure t)
+
 ;; Easy for global overrides of default keys. The current keymap will be reorganized into the first galactic empire.
 (straight-use-package 'bind-key) ;; We're gonna need it for the remainder of the file.
 
@@ -145,11 +199,11 @@
 ;;   Use bind-key* to override everything inc. minor mode rebindings.
 
 ;; Use olivetti as a minor mode for writing
-(straight-use-package 'olivetti) 
+(straight-use-package 'olivetti)
 
 ;; Notes:
 ;;   https://github.com/rnkn/olivetti
-;;   Emacs minor mode to automatically balance window margins 
+;;   Emacs minor mode to automatically balance window margins
 
 
 ;; A minimalist mode line
@@ -330,7 +384,7 @@
 ;; (use-package jit-spell
 ;;   :config
 ;;     (define-key jit-spell-mode-map (kbd "C-m") 'jit-spell-correct-word) ;; bind C-; to spell check
-;;     ;; (bind-key* (kbd "C-;") (jit-spell-correct-word)) 
+;;     ;; (bind-key* (kbd "C-;") (jit-spell-correct-word))
 ;;   )
 ;; (add-hook 'text-mode-hook 'jit-spell-mode)
 ;; (add-hook 'prog-mode-hook 'jit-spell-mode)
@@ -372,7 +426,7 @@
 ;;(straight-use-package 'markdown-preview-eww)
 (straight-use-package 'grip-mode)
 ;; Notes:
-;;   
+;;
 
 ;; Fuzzy Finder
 (use-package fzf
@@ -419,7 +473,7 @@
 ; ----------------------------- Custom keybindings: ----------------------------- ;
 
 ;; Prefer `bind-key` over `global-set-key`, because... it hates me?
-(bind-key* (kbd "M-e e") (find-file "~/.emacs")) ;; quickly open the config file.
+(bind-key* (kbd "M-e e") (find-file (expand-file-name "~/.emacs"))) ;; quickly open the config file.
 
 ;; Madness??? THIS. IS. EMACS!
 
