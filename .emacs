@@ -1,4 +1,4 @@
-;; Personal emacs configuration of Alex Larsen (kingsfoil) 
+;; Personal emacs configuration of Alex Larsen (kingsfoil)
 ;;
 ;; All color configuration in this file designed to be used with the iTerm theme "Sea Shells" found here:
 ;; https://github.com/mbadolato/iTerm2-Color-Schemes#seashells
@@ -37,6 +37,28 @@
 
 ; ----------------------------- Package Listings (be sure to say what they do!) ----------------------------- ;
 
+;; use all the icons!
+(use-package all-the-icons
+  :if (display-graphic-p))
+;; Notes:
+;;   https://github.com/domtronn/all-the-icons.el
+
+;; Orderless: powerful completion style
+;; Use this to make consult-line match anything anywhere on the line
+(use-package orderless
+  :ensure t
+  :config
+  (setq completion-styles '(orderless)))
+
+;; Consult: Misc. enhanced commands
+(use-package consult
+  :ensure t
+  :bind (;; Drop-in replacements
+         ("C-x b" . consult-buffer)     ; orig. switch-to-buffer
+         ("M-y"   . consult-yank-pop)   ; orig. yank-pop
+         ;; Searching
+         ("C-c r" . consult-ripgrep)
+         ("C-s" . consult-line)))
 
 (use-package vertico
   :init
@@ -82,7 +104,7 @@
 
 (use-package dabbrev
   ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)     
+  :bind (("M-/" . dabbrev-completion)
          ("C-M-/" . dabbrev-expand))
   ;; Other useful Dabbrev configurations.
   :custom
@@ -145,11 +167,11 @@
 ;;   Use bind-key* to override everything inc. minor mode rebindings.
 
 ;; Use olivetti as a minor mode for writing
-(straight-use-package 'olivetti) 
+(straight-use-package 'olivetti)
 
 ;; Notes:
 ;;   https://github.com/rnkn/olivetti
-;;   Emacs minor mode to automatically balance window margins 
+;;   Emacs minor mode to automatically balance window margins
 
 
 ;; A minimalist mode line
@@ -166,7 +188,8 @@
 
 (bind-key* "M-j" 'avy-goto-line)
 (bind-key* "C-M-j" 'avy-goto-char)
-(bind-key* "C-j" 'avy-goto-word-0)
+;;(bind-key* "C-j" 'avy-goto-word-1)
+(bind-key* "C-j" 'avy-goto-char-timer)
 
 ;; Notes:
 ;;   https://github.com/abo-abo/avy
@@ -238,6 +261,11 @@
 ;;   https://github.com/emacs-lsp/lsp-mode/
 ;;   https://emacs-lsp.github.io/lsp-mode/
 
+;; go-mode
+(straight-use-package 'go-mode)
+;; Notes:
+;;   https://github.com/dominikh/go-mode.el?tab=readme-ov-file
+
 ;; Yasnippet
 ;; My snippet? Yes, Yasnippet.
 ;;
@@ -251,6 +279,8 @@
 ;; Rainbow Delimiters
 (straight-use-package 'rainbow-delimiters)
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode) ;; use in programming modes
+
+
 
 ;; Notes:
 ;;   This one highlights parens etc. with differing colors
@@ -330,7 +360,7 @@
 ;; (use-package jit-spell
 ;;   :config
 ;;     (define-key jit-spell-mode-map (kbd "C-m") 'jit-spell-correct-word) ;; bind C-; to spell check
-;;     ;; (bind-key* (kbd "C-;") (jit-spell-correct-word)) 
+;;     ;; (bind-key* (kbd "C-;") (jit-spell-correct-word))
 ;;   )
 ;; (add-hook 'text-mode-hook 'jit-spell-mode)
 ;; (add-hook 'prog-mode-hook 'jit-spell-mode)
@@ -358,7 +388,7 @@
 ;;   https://github.com/syohex/emacs-hcl-mode
 
 ;; Docker? I 'ardly know 'er!
-; -- removed temporarily --
+(straight-use-package 'dockerfile-mode)
 ;; Notes:
 ;;   https://github.com/spotify/dockerfile-mode
 
@@ -372,7 +402,7 @@
 ;;(straight-use-package 'markdown-preview-eww)
 (straight-use-package 'grip-mode)
 ;; Notes:
-;;   
+;;
 
 ;; Fuzzy Finder
 (use-package fzf
@@ -416,12 +446,25 @@
 ;; Notes:
 ;;   https://github.com/AdamNiederer/vue-mode
 
+(use-package python-mode)
+
 ; ----------------------------- Custom keybindings: ----------------------------- ;
 
 ;; Prefer `bind-key` over `global-set-key`, because... it hates me?
 (bind-key* (kbd "M-e e") (find-file "~/.emacs")) ;; quickly open the config file.
 
 ;; Madness??? THIS. IS. EMACS!
+
+;; Evil Mode
+;;; Don't be evil. We can use this here because the motto is not otherwise used by anyone else. Ahem.
+;;(use-package evil)
+
+;; Enable Evil
+;;(require 'evil)
+;;(evil-mode 1)
+
+;; Notes:
+;;  https://github.com/emacs-evil/evil
 
 ; ----------------------------- CUSTOM VARS ----------------------------- ;
 (custom-set-variables
