@@ -1,3 +1,4 @@
+
 ;; Personal emacs configuration of Alex Larsen (kingsfoil)
 ;;
 ;; All color configuration in this file designed to be used with the iTerm theme "Sea Shells" found here:
@@ -5,6 +6,46 @@
 ;
 ;; If you build a man a fire, you keep him warm for one night. But if you light a man on fire: you keep him warm for the rest of his life.
 ;;    -- Terry Pratchett
+
+
+;; ----------------------------- TODO: Look into these later ----------------------------- ;
+;;
+;; * RG/FZF/BAT Integration
+;;   - Try fzf with bat previews (--preview 'bat --color=always --style=numbers {}')
+;;   - Configure ripgrep (rg) with project-wide search
+;;   - Simple bat integration for quick file previews
+;;
+;; * Navigation Enhancements
+;;   - Avy for faster in-buffer movement
+;;   - Citre/CTags for jumping to definitions
+;;   - ace-window for faster window navigation
+;;   - treemacs for project structure visualization
+;;
+;; * Code Intelligence
+;;   - tree-sitter for better syntax highlighting
+;;   - racer for lightweight Rust completions
+;;   - dtrt-indent for smart indentation detection
+;;
+;; * Documentation Tools
+;;   - Quick documentation lookup for symbols under cursor
+;;   - Enhanced eldoc integration
+;;
+;; * Non-Intrusive Completion
+;;   - Ghost text completion (like zsh's)
+;;   - Lightweight alternative to heavy LSP-based solutions
+;;
+;; * Visual Enhancements
+;;   - rainbow-delimiters for bracket highlighting
+;;   - beacon to flash cursor on movement
+;;   - xterm-color for proper ANSI colors in shell output
+;;   - vundo for visual undo tree
+;;   - color-identifiers-mode for variable highlighting
+;;
+;; * Productivity Boosters
+;;   - One-key project dashboard
+;;   - Snippet expansion showcases
+;;
+;; Remember: Focus on terminal compatibility, speed, and minimal resource usage
 
 ; ----------------------------- Meta ----------------------------- ;
 (setq-default indent-tabs-mode nil) ;; never use tabs. More trouble than they're worth.
@@ -60,6 +101,12 @@
          ("C-c r" . consult-ripgrep)
          ("C-s" . consult-line)))
 
+;; For the pollen templating system (racket)
+(use-package pollen-mode
+  :defer t)
+;; Notes:
+;;   https://docs.racket-lang.org/pollen/
+
 (use-package vertico
   :init
   (vertico-mode)
@@ -76,6 +123,10 @@
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   ;; (setq vertico-cycle t)
 )
+
+;; Edit files remotely over ssh
+(use-package tramp)
+;; Notes:
 
 (use-package corfu
   ;; Optional customizations
@@ -101,6 +152,7 @@
   ;; See also `corfu-excluded-modes'.
   :init
   (global-corfu-mode))
+
 
 (use-package dabbrev
   ;; Swap M-/ and C-M-/
@@ -160,7 +212,7 @@
 )
 
 ;; Easy for global overrides of default keys. The current keymap will be reorganized into the first galactic empire.
-(straight-use-package 'bind-key) ;; We're gonna need it for the remainder of the file.
+(use-package bind-key) ;; We're gonna need it for the remainder of the file.
 
 ;; Notes:
 ;;   https://github.com/priyadarshan/bind-key
@@ -195,24 +247,32 @@
 ;;   https://github.com/abo-abo/avy
 
 ;; lsp-mode. Because no one wants fast emacs amirite?
+;; (edit: for the reasons I joke about, I don't use a langserver)
 ;; Lang server support, hooks, etc. go here.
-;; (straight-use-package 'lsp-mode)
+;; (straight-use-package 'lsp-mode) 
 
- (use-package rustic
-  :ensure
-  :bind (:map rustic-mode-map
-              ;("M-j" . lsp-ui-imenu)
-              ("M-?" . lsp-find-references)
-              ("C-c C-c l" . flycheck-list-errors)
-              ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c r" . lsp-rename)
-              ("C-c C-c q" . lsp-workspace-restart)
-              ("C-c C-c Q" . lsp-workspace-shutdown)
-              ("C-c C-c s" . lsp-rust-analyzer-status)
-              ("C-c C-c e" . lsp-rust-analyzer-expand-macro)
-              ("C-c C-c d" . dap-hydra)
-              ("C-c C-c h" . lsp-ui-doc-glance))
-  :config)
+;; Rust!
+(use-package rust-mode)
+
+;; Notes:
+;;  I used to have the whole uncommented rustic mode thing working but it was driving me up the wall.
+;; TODO FIXME
+
+ ;; (use-package rustic
+ ;;  :ensure
+ ;;  :bind (:map rustic-mode-map
+ ;;              ;("M-j" . lsp-ui-imenu)
+ ;;              ("M-?" . lsp-find-references)
+ ;;              ("C-c C-c l" . flycheck-list-errors)
+ ;;              ("C-c C-c a" . lsp-execute-code-action)
+ ;;              ("C-c C-c r" . lsp-rename)
+ ;;              ("C-c C-c q" . lsp-workspace-restart)
+ ;;              ("C-c C-c Q" . lsp-workspace-shutdown)
+ ;;              ("C-c C-c s" . lsp-rust-analyzer-status)
+ ;;              ("C-c C-c e" . lsp-rust-analyzer-expand-macro)
+ ;;              ("C-c C-c d" . dap-hydra)
+ ;;              ("C-c C-c h" . lsp-ui-doc-glance))
+ ;;  :config)
   ;; uncomment for less flashiness
   ;; (setq lsp-eldoc-hook nil)
   ;; (setq lsp-enable-symbol-highlighting nil)
@@ -220,46 +280,51 @@
 
 
   ;; comment to disable rustfmt on save
-  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook)
+  ;; (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook)
 
-(defun rk/rustic-mode-hook ()
-  ;; so that run C-c C-c C-r works without having to confirm, but don't try to
-  ;; save rust buffers that are not file visiting. Once
-  ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
-  ;; no longer be necessary.
-  (when buffer-file-name
-    (setq-local buffer-save-without-query t))
-  (add-hook 'before-save-hook 'lsp-format-buffer nil t))
+;; (defun rk/rustic-mode-hook ()
+;;   ;; so that run C-c C-c C-r works without having to confirm, but don't try to
+;;   ;; save rust buffers that are not file visiting. Once
+;;   ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
+;;   ;; no longer be necessary.
+;;   (when buffer-file-name
+;;     (setq-local buffer-save-without-query t))
+;;   (add-hook 'before-save-hook 'lsp-format-buffer nil t))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; for rust-analyzer integration
 
-(use-package lsp-mode
-  :ensure
-  :commands lsp
-  :custom
-  ;; what to use when checking on-save. "check" is default, using clippy
-  (lsp-rust-analyzer-cargo-watch-command "clippy")
-  (lsp-eldoc-render-all t)
-  (lsp-idle-delay 0.6)
-  ;; This controls the overlays that display type and other hints inline. Enable
-  ;; / disable as you prefer. Well require a `lsp-workspace-restart' to have an
-  ;; effect on open projects.
-  (lsp-rust-analyzer-server-display-inlay-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
-  (lsp-rust-analyzer-display-chaining-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
-  (lsp-rust-analyzer-display-closure-return-type-hints t)
-  (lsp-rust-analyzer-display-parameter-hints nil)
-  (lsp-rust-analyzer-display-reborrow-hints nil)
-  :config
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+;; (use-package lsp-mode
+;;   :ensure
+;;   :commands lsp
+;;   :custom
+;;   ;; what to use when checking on-save. "check" is default, using clippy
+;;   (lsp-rust-analyzer-cargo-watch-command "clippy")
+;;   (lsp-eldoc-render-all t)
+;;   (lsp-idle-delay 0.6)
+;;   ;; This controls the overlays that display type and other hints inline. Enable
+;;   ;; / disable as you prefer. Well require a `lsp-workspace-restart' to have an
+;;   ;; effect on open projects.
+;;   (lsp-rust-analyzer-server-display-inlay-hints t)
+;;   (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
+;;   (lsp-rust-analyzer-display-chaining-hints t)
+;;   (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
+;;   (lsp-rust-analyzer-display-closure-return-type-hints t)
+;;   (lsp-rust-analyzer-display-parameter-hints nil)
+;;   (lsp-rust-analyzer-display-reborrow-hints nil)
+;;   :config
+;;   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
 
 ;; Notes:
 ;; The rust stuff here was cribbed from: https://github.com/rksm/emacs-rust-config/blob/master/init.el
 ;; which is what is built in the tutorial: https://robert.kra.hn/posts/rust-emacs-setup/
 ;;   https://github.com/emacs-lsp/lsp-mode/
 ;;   https://emacs-lsp.github.io/lsp-mode/
+
+;; just mode (for Justfiles)
+(straight-use-package 'just-mode)
+;; Notes:
+;;   https://github.com/leon-barrett/just-mode.el
 
 ;; go-mode
 (straight-use-package 'go-mode)
@@ -279,9 +344,6 @@
 ;; Rainbow Delimiters
 (straight-use-package 'rainbow-delimiters)
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode) ;; use in programming modes
-
-
-
 ;; Notes:
 ;;   This one highlights parens etc. with differing colors
 ;;   in order to make it more apparent who matches with whom.
@@ -355,6 +417,14 @@
 ;; Notes:
 ;;   Sometimes you gotta write react. This is a nice jsx major mode;
 ;;   https://github.com/felipeochoa/rjsx-mode
+
+
+;; Typescript Mode
+(use-package typescript-mode)
+
+;; Notes:
+;;   https://github.com/emacs-typescript/typescript.el
+
 
 ;; Just in Time Spell Checker (jit-spell)
 ;; (use-package jit-spell
@@ -448,12 +518,14 @@
 
 (use-package python-mode)
 
-; ----------------------------- Custom keybindings: ----------------------------- ;
+;; (use-package bluetooth)
 
-;; Prefer `bind-key` over `global-set-key`, because... it hates me?
-(bind-key* (kbd "M-e e") (find-file "~/.emacs")) ;; quickly open the config file.
+;; dtrt-indent: guess indentation levels based off the current file
+(use-package dtrt-indent)
+(dtrt-indent-global-mode 1)
+;; Notes:
+;;   https://github.com/jscheid/dtrt-indent
 
-;; Madness??? THIS. IS. EMACS!
 
 ;; Evil Mode
 ;;; Don't be evil. We can use this here because the motto is not otherwise used by anyone else. Ahem.
@@ -465,6 +537,14 @@
 
 ;; Notes:
 ;;  https://github.com/emacs-evil/evil
+
+; ----------------------------- Custom keybindings: ----------------------------- ;
+
+;; Prefer `bind-key` over `global-set-key`, because... it hates me?
+(bind-key* (kbd "M-e e") (find-file "~/.emacs")) ;; quickly open the config file.
+ 
+;; Madness??? THIS. IS. EMACS!
+
 
 ; ----------------------------- CUSTOM VARS ----------------------------- ;
 (custom-set-variables
@@ -527,6 +607,7 @@
                    'powerline-active2 'powerline-active1)))
      (:propertize " " face powerline-active1)))
  '(sml/pre-modes-separator (propertize " " 'face 'sml/modes))
+ '(tramp-default-method "ssh")
  '(warning-suppress-types '((comp) (comp)))
  '(window-divider-default-right-width 1))
 (custom-set-faces
@@ -566,7 +647,7 @@
  '(package-name ((t (:foreground "brightblue" :underline nil))))
  '(package-status-available ((t (:foreground "yellow"))))
  '(package-status-installed ((t (:inherit nil :foreground "color-41" :underline (:color "color-41" :style wave)))))
- '(region ((t (:extend t :background "gray1"))))
+ '(region ((t (:extend t :background "#27260c"))))
  '(vertical-border ((t (:foreground "black" :width condensed))))
  '(web-mode-block-delimiter-face ((t (:inherit font-lock-preprocessor-face :foreground "brightred"))))
  '(web-mode-builtin-face ((t (:inherit font-lock-builtin-face :foreground "color-105"))))
