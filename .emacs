@@ -1,12 +1,67 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; If you build a man a fire, you keep him warm for one night. But if you light a man on fire: you keep him warm for the rest of his life. ;;
+;;     -- Terry Pratchett                                                                                                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Personal emacs configuration of Alex Larsen (kingsfoil)
-;;
+;; Personal emacs configuration of Alex Larsen (kingsfoil) - using with emacs 30.1 compiled on Linux (as of 2026)
+
+;; -----------------------------------------------------------------------------------------
+
 ;; All color configuration in this file designed to be used with the iTerm theme "Sea Shells" found here:
 ;; https://github.com/mbadolato/iTerm2-Color-Schemes#seashells
-;
-;; If you build a man a fire, you keep him warm for one night. But if you light a man on fire: you keep him warm for the rest of his life.
-;;    -- Terry Pratchett
+;; (though I'm on kitty/linux these days so all recent configurations reflect that, where applicable)
+;; TODO: turn this into a custom theme file https://emacsfodder.github.io/emacs-theme-editor/
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Lisp cons cell review                                            ;;
+;; car => head                                                      ;;
+;; cons => construct linked list element                            ;;
+;; cdr => tail (rest)                                               ;;
+;;                                                                  ;;
+;; (cons 1 2) => produces a cons cell with head:1 tail:2            ;;
+;; '(1 . 2)   => syntactic sugar for the same thing (`.` => `cons`) ;;
+;;                                                                  ;;
+;; '(...)     => list, not function call                            ;;
+;; (...)      => function call                                      ;;
+;; '(1 2 3)   => linked list (cons cells) of (1 . (2 . (3 . nil)))  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; General package import reference:                                                                 ;;
+;; (use-package package-name                                                                            ;;
+;;   :defer t ;; explicitly state that the editor should load before the package (faster startup times) ;;
+;;   :bind (                                                                                            ;;
+;;          ("C-c f" . (s-expr)) ;; bind these keys on package load                                     ;;
+;;          )                                                                                           ;;
+;;   :config ;; call these functions on package load (at least I think that's when they're called)      ;;
+;;   (s-expr)                                                                                           ;;
+;;   (another s-expr)                                                                                   ;;
+;;   (etc.)                                                                                             ;;
+;;   )                                                                                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; What in the name of sanity is going on with completion?                                        ;;
+;; - vertico: strictly minibuffer completion UI that handles display of candidates                   ;;
+;; - corfu: strictly at-point completion UI; vertico for the middle of the buffer                    ;;
+;; - orderless: works for both, but focused just on how candidates are filtered/sorted given a query ;;
+;; - dabbrev: sources completions for the completion-at-point system                                 ;;
+;; - cape: special completion-at-point functions (“capf”)                                            ;;
+;;   (courtesy of the derk of vars)                                                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Tips for myself:
+;; - `C-h m`               => show all major/minor modes and their simple help pages
+;; - `C-h b`               => show all current key bindings
+;; - `C-h ?` or `M-x help` => open help buffer to explore
+;; - `C-h o`               => describe symbol at point (use this when you don't know what an elisp thing is doing)
+
+;; --- TODO: Read these later ---
+;; - https://systemcrafters.net/emacs-from-scratch/the-best-default-settings/
+;; - https://karthinks.com/software/batteries-included-with-emacs/
+;; - https://eshelyaron.com/posts/2023-11-17-completion-preview-in-emacs.html
+;; - https://github.com/company-mode/company-mode/wiki/Writing-backends
+;; - https://emacsredux.com/blog/2026/03/03/expreg-expand-region-reborn/
 
 ;; ----------------------------- TODO: Look into these later ----------------------------- ;
 ;;
@@ -23,20 +78,20 @@
 ;;
 ;; * Code Intelligence
 ;;   - tree-sitter for better syntax highlighting
-;;   - racer for lightweight Rust completions
 ;;   - dtrt-indent for smart indentation detection
+;;   - embark+consult-ripgrep (embark pulls up a menu buffer and you can edit matches directly in that buffer, Ashton showed me Jan 2026)
 ;;
 ;; * Documentation Tools
 ;;   - Quick documentation lookup for symbols under cursor
 ;;   - Enhanced eldoc integration
 ;;
 ;; * Non-Intrusive Completion
-;;   - Ghost text completion (like zsh's)
+;;   - Ghost text completion (like zsh's) => use `preview-completion-mode` (done)
 ;;   - Lightweight alternative to heavy LSP-based solutions
 ;;
 ;; * Visual Enhancements
-;;   - rainbow-delimiters for bracket highlighting
-;;   - beacon to flash cursor on movement
+;;   - rainbow-delimiters for bracket highlighting (done)
+;;   - beacon to flash cursor on movement (Ashton suggests Pulsar instead)
 ;;   - xterm-color for proper ANSI colors in shell output
 ;;   - vundo for visual undo tree
 ;;   - color-identifiers-mode for variable highlighting
@@ -45,68 +100,65 @@
 ;;   - One-key project dashboard
 ;;   - Snippet expansion showcases
 ;;
-;; Remember: Focus on terminal compatibility, speed, and minimal resource usage
+;; Remember: Focus on terminal compatibility, speed, and minimal resource usage. Editor should get out of the way.
 
 ; ----------------------------- Meta ----------------------------- ;
 (setq-default indent-tabs-mode nil) ;; never use tabs. More trouble than they're worth.
-(menu-bar-mode -1)                  ;;  (Turn off the top menu bar. No one has ever used it in the history of emacs -nw)
+(menu-bar-mode -1)                  ;;  (Turn off the top menu bar. No one has ever used it in the history of `emacs -nw`)
 (setq vc-follow-symlinks t)
+(setq inhibit-startup-screen t) ;; don't load the startup screen (should open the scratch buffer
+(setq xterm-mouse-mode 1) ;; let emacs decide about where cursor highlights should go with split buffers
 
-; ----------------------------- Use straight.el for package management ----------------------------- ;
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; Completion preview mode (the best complete)
+(global-completion-preview-mode t)
+(bind-key* "M-n" 'completion-preview-next-candidate)
+(bind-key* "M-p" 'completion-preview-prev-candidate)
 
-;; Use the use package macro when calling (use-package ...)
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
+; ----------------------------- Packages (be sure to say what they do!) ----------------------------- ;
+(setq use-package-always-ensure t) ;; treat everyting like it has `:ensure t` set
 
-;; Notes:
-;; Since you always forget: https://jeffkreeftmeijer.com/emacs-straight-use-package
-;;
-;; call `(straight-pull-recipe-repositories)` on occasion (or whenever this init file is run on a new system)
-;; This will ensure that we've fetched melpa, the emacs package mirror etc.
+(with-eval-after-load 'package ;; use melpa
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
 
-; ----------------------------- Package Listings (be sure to say what they do!) ----------------------------- ;
+(setq byte-compile-warnings '(not obsolete)) ;; warnings? where we're going we don't need *warnings*.
+(setq warning-suppress-log-types '((comp) (bytecomp)))
 
-;; use all the icons!
+;; use all the icons! (pretty icons)
 (use-package all-the-icons
   :if (display-graphic-p))
 ;; Notes:
 ;;   https://github.com/domtronn/all-the-icons.el
 
 ;; Orderless: powerful completion style
-;; Use this to make consult-line match anything anywhere on the line
+;; Use this to make consult-line match anything anywhere on the line fuzzily
 (use-package orderless
   :ensure t
   :config
   (setq completion-styles '(orderless)))
+;; Note:
+;;   Makes Orderless Fuzzy
 
-;; Consult: Misc. enhanced commands
+;; Consult: Search and navigate via completing-read
 (use-package consult
   :ensure t
   :bind (;; Drop-in replacements
-         ("C-x b" . consult-buffer)     ; orig. switch-to-buffer
+         ("C-x b" . consult-buffer)     ; orig. switch-to-buffery
          ("M-y"   . consult-yank-pop)   ; orig. yank-pop
          ;; Searching
-         ("C-c r" . consult-ripgrep)
-         ("C-s" . consult-line)))
+         ("C-c r" . consult-ripgrep)    ; ripgrep through files and use consult-line to walk through them. Very nice.
+         ("C-s" . consult-line)         ; replace default search binding with consult line, which searches in mini-buffer in a fancy way
+         ("M-f" . consult-imenu)        ; in supported major modes, use the consult minibuffer to hop between definitions (like functions)
+         ))
+;; Notes:
+;;   https://github.com/minad/consult
 
-;; For the pollen templating system (racket)
+;; Major mode for the pollen templating system (racket)
 (use-package pollen-mode
   :defer t)
 ;; Notes:
 ;;   https://docs.racket-lang.org/pollen/
 
+;; VERTical Interactive COmpletion (Vertico provides a vertical completion UI based on the default completion system)
 (use-package vertico
   :init
   (vertico-mode)
@@ -127,7 +179,9 @@
 ;; Edit files remotely over ssh
 (use-package tramp)
 ;; Notes:
+;;  In the immortal words of the windmill: "I'm not a huge fan." Purportedly there are other solutions to this, worth checking out.
 
+;; COmpletion in Region FUnction 
 (use-package corfu
   ;; Optional customizations
   ;; :custom
@@ -150,9 +204,23 @@
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
   ;; See also `corfu-excluded-modes'.
+  :ensure t
   :init
   (global-corfu-mode))
+;; Notes:
+;;   - Does autocompletion in that ugly little popup that I still need to customize the colors for.
+;;   - TODO: see if there's not a better way to integrate it with (completion-preview-mode)
+;;   https://github.com/minad/corfu
 
+;; Corfu popup on terminal (TODO: re-evaluate, might be redundant with completion-preview)
+(use-package
+  corfu-terminal
+  :ensure t
+  :config 
+  (corfu-terminal-mode +1)
+  )
+;; Notes:
+;;   - https://codeberg.org/akib/emacs-corfu-terminal
 
 (use-package dabbrev
   ;; Swap M-/ and C-M-/
@@ -167,15 +235,7 @@
   :init
   (savehist-mode))
 
-(straight-use-package
- '(corfu-terminal
-   :type git
-   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
-
-(unless (display-graphic-p)
-  (corfu-terminal-mode +1))
-
-;; Add extensions
+;; Completion At Point Extensions which can be used in combination with Corfu, Company etc.
 (use-package cape
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
@@ -219,16 +279,15 @@
 ;;   Use bind-key* to override everything inc. minor mode rebindings.
 
 ;; Use olivetti as a minor mode for writing
-(straight-use-package 'olivetti)
+(use-package olivetti :ensure t)
 
 ;; Notes:
 ;;   https://github.com/rnkn/olivetti
 ;;   Emacs minor mode to automatically balance window margins
 
-
 ;; A minimalist mode line
-(straight-use-package 'feebleline)
-(feebleline-mode t)
+(use-package feebleline)
+(feebleline-mode t) ;; turn it on
 
 ;; Notes:
 ;;   https://github.com/tautologyclub/feebleline
@@ -236,12 +295,20 @@
 ;; Avy: Because moving the cursor around is for plebs.
 ;;  Avy allows for jumping around inside a file by creating labels at distinict points around a buffer or set of buffers.
 ;;  An enterprising programmer at this point can jump between those points as a means of rapid navigation
-(straight-use-package 'avy)
 
-(bind-key* "M-j" 'avy-goto-line)
-(bind-key* "C-M-j" 'avy-goto-char)
-;;(bind-key* "C-j" 'avy-goto-word-1)
-(bind-key* "C-j" 'avy-goto-char-timer)
+
+(use-package avy
+  :bind (
+         ("M-j"   . 'avy-goto-line)
+         ("C-M-j" . 'avy-goto-char)
+         ;;("C-j"   . 'avy-goto-word-1)
+         ("C-j"   . 'avy-goto-char-timer)
+  ))
+
+;; (bind-key* "M-j" 'avy-goto-line)
+;; (bind-key* "C-M-j" 'avy-goto-char)
+;; ;;(bind-key* "C-j" 'avy-goto-word-1)
+;; (bind-key* "C-j" 'avy-goto-char-timer)
 
 ;; Notes:
 ;;   https://github.com/abo-abo/avy
@@ -249,7 +316,7 @@
 ;; lsp-mode. Because no one wants fast emacs amirite?
 ;; (edit: for the reasons I joke about, I don't use a langserver)
 ;; Lang server support, hooks, etc. go here.
-;; (straight-use-package 'lsp-mode) 
+;; (use-package lsp-mode) 
 
 ;; Rust!
 (use-package rust-mode)
@@ -322,12 +389,12 @@
 ;;   https://emacs-lsp.github.io/lsp-mode/
 
 ;; just mode (for Justfiles)
-(straight-use-package 'just-mode)
+(use-package just-mode)
 ;; Notes:
 ;;   https://github.com/leon-barrett/just-mode.el
 
 ;; go-mode
-(straight-use-package 'go-mode)
+(use-package go-mode)
 ;; Notes:
 ;;   https://github.com/dominikh/go-mode.el?tab=readme-ov-file
 
@@ -335,26 +402,26 @@
 ;; My snippet? Yes, Yasnippet.
 ;;
 ;; Nice templating system for various languages
-(straight-use-package 'yasnippet)
+(use-package yasnippet)
 (yas-global-mode 1)
 
 ;; Notes:
 ;;   https://github.com/joaotavora/yasnippet
 
 ;; Rainbow Delimiters
-(straight-use-package 'rainbow-delimiters)
+(use-package rainbow-delimiters)
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode) ;; use in programming modes
 ;; Notes:
 ;;   This one highlights parens etc. with differing colors
 ;;   in order to make it more apparent who matches with whom.
 
 ;; Flycheck
-(straight-use-package 'flycheck)
+(use-package flycheck)
 ;; Notes:
 ;;   https://www.flycheck.org/en/latest/user/installation.html
 
 ;; Elixir
-(straight-use-package 'elixir-mode)
+(use-package elixir-mode)
 ;; Notes:
 ;;   It's a major mode for Elixir. Duh.
 
@@ -398,8 +465,7 @@
 ;;   This was recommended by the tutorial here: https://robert.kra.hn/posts/rust-emacs-setup/
 
 ;; Nushell
-(straight-use-package
- '(nushell-mode :type git :host github :repo "azzamsa/emacs-nushell"))
+(use-package nushell-mode)
 ;; Notes:
 ;;   Major mode for nushell scripts. Do I gotta spell it out?
 
@@ -439,7 +505,7 @@
 ;;;  https://github.com/astoff/jit-spell
 
 ;; Credo
-(straight-use-package 'flycheck-credo)
+(use-package flycheck-credo)
 (eval-after-load 'flycheck
   '(flycheck-credo-setup))
 (add-hook 'elixir-mode-hook 'flycheck-mode)
@@ -448,29 +514,30 @@
 ;;   https://github.com/aaronjensen/flycheck-credo
 
 ;; Alchemist.el (not using for the time being)
-;;;; (straight-use-package 'alchemist)
+;;;; (use-package alchemist)
 ;; Notes:
 ;;   https://github.com/tonini/alchemist.el
 
 ;; HCL. Like hydrochloric acid.
-(straight-use-package 'hcl-mode)
+(use-package hcl-mode)
 ;; Notes:
 ;;   https://github.com/syohex/emacs-hcl-mode
 
 ;; Docker? I 'ardly know 'er!
-(straight-use-package 'dockerfile-mode)
+(use-package dockerfile-mode)
 ;; Notes:
 ;;   https://github.com/spotify/dockerfile-mode
 
 ;; GitLab CI YAML files:
-(straight-use-package 'gitlab-ci-mode)
+(use-package gitlab-ci-mode)
 
 ;; Notes:
 ;;   https://gitlab.com/joewreschnig/gitlab-ci-mode/
 
 ;; Markdown
-;;(straight-use-package 'markdown-preview-eww)
-(straight-use-package 'grip-mode)
+;;(use-package markdown-preview-eww)
+;;(use-package grip-mode)
+(use-package markdown-mode)
 ;; Notes:
 ;;
 
@@ -497,7 +564,7 @@
 ;;  Did you know the original version of grep was written by Ken Thompson (as in K&R) in PDP-11 assembly? Legendary.
 
 ;; It would be *dumb* not to *jump* around with ripgrep. I mean c'mon.
-(straight-use-package 'dumb-jump)
+(use-package dumb-jump)
 ;; Notes:
 ;;  https://github.com/jacktasia/dumb-jump
 
@@ -516,7 +583,7 @@
 ;; Notes:
 ;;   https://github.com/AdamNiederer/vue-mode
 
-(use-package python-mode)
+;; (use-package python-mode)
 
 ;; (use-package bluetooth)
 
@@ -541,10 +608,9 @@
 ; ----------------------------- Custom keybindings: ----------------------------- ;
 
 ;; Prefer `bind-key` over `global-set-key`, because... it hates me?
-(bind-key* (kbd "M-e e") (find-file "~/.emacs")) ;; quickly open the config file.
+(bind-key* (kbd "M-e e") #'(lambda () (find-file "~/.emacs"))) ;; quickly open the config file.
  
 ;; Madness??? THIS. IS. EMACS!
-
 
 ; ----------------------------- CUSTOM VARS ----------------------------- ;
 (custom-set-variables
@@ -554,13 +620,17 @@
  ;; If there is more than one, they won't work right.
  '(achievements-mode t)
  '(custom-safe-themes
-   '("84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "b9e9ba5aeedcc5ba8be99f1cc9301f6679912910ff92fdf7980929c2fc83ab4d" "60940e1f2fa3f4e61e7a7ed9bab9c22676aa25f927d5915c8f0fa3a8bf529821" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
- '(package-selected-packages
-   '(dumb-jump flycheck-credo company-jedi minimap web-mode realgud wc-goal-mode wc-mode rust-mode smooth-scroll smooth-scrolling sublimity doom-modeline zone-rainbow zone-nyan yasnippet writeroom-mode writegood-mode web-narrow-mode vterm use-package smbc smart-mode-line-powerline-theme smart-mode-line-atom-one-dark-theme selectric-mode reveal-in-osx-finder restart-emacs rainbow-fart php-mode nyan-mode multi-web-mode mood-line memento-mori markdown-preview-mode markdown-mode+ make-color major-mode-icons major-mode-hydra lsp-ui lsp-ivy ivy-prescient ivy-emoji hide-mode-line helm haskell-mode graphql-mode graphql gitignore-mode flymake-elixir flymake-easy flycheck-elixir exunit elixir-mode darkroom dap-mode counsel company-prescient company-lsp company-box all-the-icons-ivy-rich all-the-icons-ivy achievements 0blayout))
+   '("84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279"
+     "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa"
+     "b9e9ba5aeedcc5ba8be99f1cc9301f6679912910ff92fdf7980929c2fc83ab4d"
+     "60940e1f2fa3f4e61e7a7ed9bab9c22676aa25f927d5915c8f0fa3a8bf529821"
+     "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223"
+     "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e"
+     default))
+ '(package-selected-packages nil)
  '(sml/mode-width (if (eq (powerline-current-separator) 'arrow) 'right 'full))
  '(sml/pos-id-separator
-   '(""
-     (:propertize " " face powerline-active1)
+   '("" (:propertize " " face powerline-active1)
      (:eval
       (propertize " " 'display
                   (funcall
@@ -571,8 +641,7 @@
                    'powerline-active1 'powerline-active2)))
      (:propertize " " face powerline-active2)))
  '(sml/pos-minor-modes-separator
-   '(""
-     (:propertize " " face powerline-active1)
+   '("" (:propertize " " face powerline-active1)
      (:eval
       (propertize " " 'display
                   (funcall
@@ -583,8 +652,7 @@
                    'powerline-active1 'sml/global)))
      (:propertize " " face sml/global)))
  '(sml/pre-id-separator
-   '(""
-     (:propertize " " face sml/global)
+   '("" (:propertize " " face sml/global)
      (:eval
       (propertize " " 'display
                   (funcall
@@ -595,8 +663,7 @@
                    'sml/global 'powerline-active1)))
      (:propertize " " face powerline-active1)))
  '(sml/pre-minor-modes-separator
-   '(""
-     (:propertize " " face powerline-active2)
+   '("" (:propertize " " face powerline-active2)
      (:eval
       (propertize " " 'display
                   (funcall
@@ -649,6 +716,7 @@
  '(package-status-installed ((t (:inherit nil :foreground "color-41" :underline (:color "color-41" :style wave)))))
  '(region ((t (:extend t :background "#27260c"))))
  '(vertical-border ((t (:foreground "black" :width condensed))))
+ '(vertico-current ((t (:extend t :underline t))))
  '(web-mode-block-delimiter-face ((t (:inherit font-lock-preprocessor-face :foreground "brightred"))))
  '(web-mode-builtin-face ((t (:inherit font-lock-builtin-face :foreground "color-105"))))
  '(web-mode-html-tag-bracket-face ((t (:foreground "yellow"))))
