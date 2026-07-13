@@ -1,12 +1,18 @@
 source ~/.aliases
 source ~/.env_vars
 
-neofetch # --ascii ~/dotfiles/aperture_ascii.txt
+~/.config/neofetch/bmosay.sh -q -r ~/.config/neofetch/bmofetch.quotes && neofetch --config ~/.config/neofetch/bmofetch.conf --source ~/.config/neofetch/bmo.txt
+#neofetch --config ~/.config/neofetch/bmofetch.conf --source ~/.config/neofetch/bmo.txt
+
+echo "DAILY FORTUNE:  "
+fortune -s
+
+printf "\nmullvad status: $(mullvad status)\n\n"
+#mullvad status; ## State the current connection status of mullvad
 
 # export NVM_DIR="$HOME/.nvm"
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 # [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 
 ## Evals for various things
 eval "$(starship init bash)"
@@ -17,8 +23,6 @@ eval "$(zoxide init bash)"
 # export PATH="/usr/local/sbin:$PATH"
 
 #export PATH="/Users/alex/.mix/escripts:$PATH" 
-
-fortune -s
 
 export PATH="/usr/local/sbin:$PATH"
 export PATH="/sbin:$PATH"
@@ -48,3 +52,37 @@ export HELIX_RUNTIME=~/sources/helix/runtime
 
 . "$HOME/.asdf/asdf.sh"
 . "$HOME/.asdf/completions/asdf.bash"
+. "$HOME/.cargo/env"
+
+# Set up fzf key bindings and fuzzy completion
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# Use vivid to set LSCOLORs so we can read the output from lsd
+export LS_COLORS="$(vivid generate ayu)"
+
+# Get go binaries in the path
+export PATH=$PATH:/usr/local/go/bin
+
+# Keep the history around
+shopt -s histappend
+
+export EDITOR="$(which emacs) -nw"
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+case ":$PATH:" in
+    *:/home/kingsfoil/.juliaup/bin:*)
+        ;;
+
+    *)
+        export PATH=/home/kingsfoil/.juliaup/bin${PATH:+:${PATH}}
+        ;;
+esac
+
+# <<< juliaup initialize <<<
+export PATH="/home/kingsfoil/.local/bin:$PATH"
+
+
+
