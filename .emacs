@@ -3,6 +3,10 @@
 ;;     -- Terry Pratchett                                                                                                                  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Emacs takes a lifetime to learn: so the sooner you start, the longer it will take. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Personal emacs configuration of Alex Larsen (kingsfoil) - using with emacs 30.1 compiled on Linux (as of 2026)
 
 ;; -----------------------------------------------------------------------------------------
@@ -106,30 +110,46 @@
 (setq-default indent-tabs-mode nil) ;; never use tabs. More trouble than they're worth.
 (menu-bar-mode -1)                  ;;  (Turn off the top menu bar. No one has ever used it in the history of `emacs -nw`)
 (setq vc-follow-symlinks t)
-(setq inhibit-startup-screen t) ;; don't load the startup screen (should open the scratch buffer
-(setq xterm-mouse-mode 1) ;; let emacs decide about where cursor highlights should go with split buffers
+(setq inhibit-startup-screen t)     ;; don't load the startup screen (should open the scratch buffer instead)
+
+;; Get selection/copy/paste in order
+(xterm-mouse-mode 1)             ;; let emacs decide about where cursor highlights should go with split buffers (emacs highlight region not terminal)
+(setq select-enable-clipboard t) ;; kill/yank to/from the system clipboard instead of a separate kill ring (at least for now, I may go back)
+(setq select-enable-primary t)   ;; sync with the X11 primary selection (i.e. the system-wide clipboard)
+;; ^^^ to actually enforce the above behavior, enable xclip-mode vvv
+;; (require 'xclip)
+;; (xclip-mode 1)
+;; (turn-on-xclip)
+
 
 ;; Completion preview mode (the best complete)
 (global-completion-preview-mode t)
 (bind-key* "M-n" 'completion-preview-next-candidate)
 (bind-key* "M-p" 'completion-preview-prev-candidate)
 
-; ----------------------------- Packages (be sure to say what they do!) ----------------------------- ;
+; ----------------------------- Packages/Modes (be sure to say what they do!) ----------------------------- ;
 (setq use-package-always-ensure t) ;; treat everyting like it has `:ensure t` set
 
 (with-eval-after-load 'package ;; use melpa
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
 
-(setq byte-compile-warnings '(not obsolete)) ;; warnings? where we're going we don't need *warnings*.
+(setq byte-compile-warnings '(not obsolete)) ;; warnings? where we're going we don't need *warnings*
 (setq warning-suppress-log-types '((comp) (bytecomp)))
 
+;; Let emacs and xclip talk to one another TODO FIXME
+;; (use-package xclip
+;;   :config (xclip-mode 1))
+;; Notes:
+;;   - xclip.el (on emacs wiki)
+
 ;; use all the icons! (pretty icons)
-(use-package all-the-icons
-  :if (display-graphic-p))
+;; (use-package all-the-icons
+;;   :if (display-graphic-p))
 ;; Notes:
 ;;   https://github.com/domtronn/all-the-icons.el
 
-;; Orderless: powerful completion style
+
+;; Orderless: powerful completion style 
 ;; Use this to make consult-line match anything anywhere on the line fuzzily
 (use-package orderless
   :ensure t
@@ -137,6 +157,12 @@
   (setq completion-styles '(orderless)))
 ;; Note:
 ;;   Makes Orderless Fuzzy
+;;   TODO: Go look at configs for this. Sometimes it's a bit insensible
+
+;; Lua Major Mode
+(use-package lua-mode)
+;; Note:
+;;   https://github.com/immerrr/lua-mode
 
 ;; Consult: Search and navigate via completing-read
 (use-package consult
@@ -147,10 +173,41 @@
          ;; Searching
          ("C-c r" . consult-ripgrep)    ; ripgrep through files and use consult-line to walk through them. Very nice.
          ("C-s" . consult-line)         ; replace default search binding with consult line, which searches in mini-buffer in a fancy way
-         ("M-f" . consult-imenu)        ; in supported major modes, use the consult minibuffer to hop between definitions (like functions)
+         ;;("M-f" . consult-imenu)        ; in supported major modes, use the consult minibuffer to hop between definitions (like functions)
+         ("C-x r b" . consult-bookmark-narrow)
          ))
 ;; Notes:
 ;;   https://github.com/minad/consult
+
+;; Code Folding (I blame the Advanstaff kronos_employee_sync.pm module for this one. Grrrr)
+(use-package origami
+  :defer t)
+;; Notes:
+;;  
+
+;; Mini map (useful for egregiously long nested files)
+(use-package demap
+  :defer t
+
+  :bind (
+         ("M-m" . demap-toggle)
+         )
+
+  :config
+  (face-spec-set 'demap-minimap-font-face
+                 `((t   :inherit    unspecified
+                        :family     "minimap"
+                        :height     10)))
+  (setq demap-minimap-window-side  'left)
+  (setq demap-minimap-window-width 15)
+  )
+;; Notes:
+;;   https://github.com/emacsmirror/demap
+
+;; Major mode for Terraform/OpenTofu
+(use-package terraform-mode)
+;; Notes:
+;;   https://github.com/hcl-emacs/terraform-mode
 
 ;; Major mode for the pollen templating system (racket)
 (use-package pollen-mode
@@ -285,14 +342,22 @@
 ;;   https://github.com/rnkn/olivetti
 ;;   Emacs minor mode to automatically balance window margins
 
-;; A minimalist mode line
+;; Hide and show scopes (good for deeply nested codebases)
+;; (hs-minor-mode)
+;; (bind-key* "M-h" hs-toggle-hiding)
+;; Notes:
+;;   I enabled this one specifically to deal with the kronos_employee_sync.pm file at Advanstaff in May of 2026. I hate that file.
+;;   https://www.nongnu.org/emacsdoc-fr/manuel/hideshow.html <= docs on different ways to use this (good short reference)
+;; Update: As of May 2026 this doesn't appear to work for either c-mode, perl-mode, or cperl ode. But *does* work for elisp. Grrr. There are some alternatives to consider here like oragami, search around for them and come back to this as a TODO.
+
+;;; Feebleline: A minimalist mode line
 (use-package feebleline)
 (feebleline-mode t) ;; turn it on
 
 ;; Notes:
 ;;   https://github.com/tautologyclub/feebleline
 
-;; Avy: Because moving the cursor around is for plebs.
+;;; Avy: Because moving the cursor around is for plebs.
 ;;  Avy allows for jumping around inside a file by creating labels at distinict points around a buffer or set of buffers.
 ;;  An enterprising programmer at this point can jump between those points as a means of rapid navigation
 
@@ -318,7 +383,16 @@
 ;; Lang server support, hooks, etc. go here.
 ;; (use-package lsp-mode) 
 
-;; Rust!
+
+;;; Pathologically Eclectic Rubbish Lister <3
+;; Use cperl-mode instead of plain perl-mode
+(add-to-list 'auto-mode-alist '("\\.pm\\'" . cperl-mode))
+(add-to-list 'auto-mode-alist '("\\.pl\\'" . cperl-mode))
+;; Notes:
+;;   - The beginning
+;;   - https://xkcd.com/519/ (perhaps the most specifically relatable xkcd for me)
+
+;;; Rust!
 (use-package rust-mode)
 
 ;; Notes:
@@ -388,7 +462,7 @@
 ;;   https://github.com/emacs-lsp/lsp-mode/
 ;;   https://emacs-lsp.github.io/lsp-mode/
 
-;; just mode (for Justfiles)
+;;; Just mode (for Justfiles)
 (use-package just-mode)
 ;; Notes:
 ;;   https://github.com/leon-barrett/just-mode.el
@@ -398,7 +472,7 @@
 ;; Notes:
 ;;   https://github.com/dominikh/go-mode.el?tab=readme-ov-file
 
-;; Yasnippet
+;;; Yasnippet
 ;; My snippet? Yes, Yasnippet.
 ;;
 ;; Nice templating system for various languages
@@ -408,24 +482,24 @@
 ;; Notes:
 ;;   https://github.com/joaotavora/yasnippet
 
-;; Rainbow Delimiters
+;;; Rainbow Delimiters
 (use-package rainbow-delimiters)
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode) ;; use in programming modes
 ;; Notes:
 ;;   This one highlights parens etc. with differing colors
 ;;   in order to make it more apparent who matches with whom.
 
-;; Flycheck
+;;; Flycheck
 (use-package flycheck)
 ;; Notes:
 ;;   https://www.flycheck.org/en/latest/user/installation.html
 
-;; Elixir
+;;; Elixir
 (use-package elixir-mode)
 ;; Notes:
 ;;   It's a major mode for Elixir. Duh.
 
-;; Rust
+;;; Rust (old)
 ;; (use-package rustic
 ;;   :ensure
 ;;   :bind (:map rustic-mode-map
@@ -464,12 +538,12 @@
 ;;   See https://github.com/brotzeit/rustic (it's an alternative to rust-mode)
 ;;   This was recommended by the tutorial here: https://robert.kra.hn/posts/rust-emacs-setup/
 
-;; Nushell
+;;; Nushell
 (use-package nushell-mode)
 ;; Notes:
 ;;   Major mode for nushell scripts. Do I gotta spell it out?
 
-;; JSX Mode
+;;; JSX Mode
 (add-to-list 'auto-mode-alist '("\\.tsx\\'" . rjsx-mode)) ;; Ensure that we load for typescript as well
 (setq js-indent-level 2) ;; Honestly this should be true for all js files. Idk why emacs doesn't have a sane default here.
 (use-package rjsx-mode
@@ -485,14 +559,14 @@
 ;;   https://github.com/felipeochoa/rjsx-mode
 
 
-;; Typescript Mode
+;;; Typescript Mode
 (use-package typescript-mode)
 
 ;; Notes:
 ;;   https://github.com/emacs-typescript/typescript.el
 
 
-;; Just in Time Spell Checker (jit-spell)
+;;; Just in Time Spell Checker (jit-spell)
 ;; (use-package jit-spell
 ;;   :config
 ;;     (define-key jit-spell-mode-map (kbd "C-m") 'jit-spell-correct-word) ;; bind C-; to spell check
@@ -504,7 +578,7 @@
 ;;; Doesn't really work. Not using.
 ;;;  https://github.com/astoff/jit-spell
 
-;; Credo
+;;; Credo
 (use-package flycheck-credo)
 (eval-after-load 'flycheck
   '(flycheck-credo-setup))
@@ -513,38 +587,38 @@
 ;;   Use flycheck to report linter errors from credo on the fly
 ;;   https://github.com/aaronjensen/flycheck-credo
 
-;; Alchemist.el (not using for the time being)
-;;;; (use-package alchemist)
+;;; Alchemist.el (not using for the time being)
+;; (use-package alchemist)
 ;; Notes:
 ;;   https://github.com/tonini/alchemist.el
 
-;; HCL. Like hydrochloric acid.
+;;; HCL. Like hydrochloric acid.
 (use-package hcl-mode)
 ;; Notes:
 ;;   https://github.com/syohex/emacs-hcl-mode
 
-;; Docker? I 'ardly know 'er!
+;;; Docker
 (use-package dockerfile-mode)
 ;; Notes:
 ;;   https://github.com/spotify/dockerfile-mode
 
-;; GitLab CI YAML files:
+;;; GitLab CI YAML files:
 (use-package gitlab-ci-mode)
 
 ;; Notes:
 ;;   https://gitlab.com/joewreschnig/gitlab-ci-mode/
 
-;; Markdown
+;;; Markdown
 ;;(use-package markdown-preview-eww)
 ;;(use-package grip-mode)
 (use-package markdown-mode)
 ;; Notes:
-;;
+;;   - I find most markdown modes to be less than satisfying. TODO: find a better solution here
 
-;; Fuzzy Finder
+;;; Fuzzy Finder
 (use-package fzf
   :bind
-    ;; Don't forget to set keybinds!
+    ;; TODO: set keybinds!
   :config
   (setq fzf/args "-x --color bw --print-query --margin=1,0 --no-hscroll"
         fzf/executable "fzf"
@@ -558,23 +632,23 @@
         fzf/window-height 15))
 
 
-;; Ripgrep. As in, RIP grep, you will have a fond place in our hearts, always. Rust is the future.
+;;; Ripgrep. As in, RIP grep, you will have a fond place in our hearts, always. Rust is the future.
 ;;  -- removed temporarily --
 ;; Notes:
 ;;  Did you know the original version of grep was written by Ken Thompson (as in K&R) in PDP-11 assembly? Legendary.
 
-;; It would be *dumb* not to *jump* around with ripgrep. I mean c'mon.
+;;; It would be *dumb* not to *jump* around with ripgrep.
 (use-package dumb-jump)
 ;; Notes:
 ;;  https://github.com/jacktasia/dumb-jump
 
-;; Because why not?
+;;; Extremely important feature
 ;; Run a nyan cat with M-x zone-nyan-preview
 (use-package zone-nyan)
 ;; Notes:
 ;;  https://github.com/emacsmirror/zone-nyan
 
-;; Vue
+;;; Vue
 (use-package vue-mode)
 
 (add-hook 'mmm-mode-hook ;; mmm-mode comes with the ugliest background colors known to the human race.
@@ -587,15 +661,15 @@
 
 ;; (use-package bluetooth)
 
-;; dtrt-indent: guess indentation levels based off the current file
+;;; dtrt-indent: guess indentation levels based off the current file
 (use-package dtrt-indent)
 (dtrt-indent-global-mode 1)
 ;; Notes:
 ;;   https://github.com/jscheid/dtrt-indent
 
 
-;; Evil Mode
-;;; Don't be evil. We can use this here because the motto is not otherwise used by anyone else. Ahem.
+;;; Evil Mode TODO: give a more serious attempt at exploring this someday
+;; "Don't be evil." We can use this motto here because it is not otherwise in use. Ahem.
 ;;(use-package evil)
 
 ;; Enable Evil
