@@ -1,0 +1,28 @@
+[alias]
+	co = checkout
+	st = status
+	last = log -1 HEAD
+	br = branch
+[core]
+	excludesfile = /home/kingsfoil/.gitignore
+        pager = delta
+[user]
+	email = alexl@advanstaff.com
+	name = alex
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true    # use n and N to move between diff sections
+    line-numbers = true           # Shows line numbers
+    side-by-side = true            # Split view - MUCH clearer
+    file-style = bold yellow ul    # Prominent file headers
+
+[merge]
+	conflictStyle = zdiff3
+
+[diff]
+    colorMoved = default
+[init]
+	defaultBranch = main

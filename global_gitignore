@@ -1,0 +1,6 @@
+*~
+.env
+bak_*
+a.out.basm
+__*
+CLAUDE.md
