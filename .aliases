@@ -1,16 +1,24 @@
+## -*- mode: shell-script -*-
+
+#######################################################################
+# Useful aliases and functions to make life in the shell a bit easier #
+#######################################################################
+
 ## Aliases:
 alias sudo='sudo '
-alias ls='lsd'
+alias ls='lsd -F'
 alias ll='ls -l'
 alias la='ls -la'
 alias lll='ls -la'
 alias lt='ls --tree'
-alias emacs='emacs -nw'
+#alias emacs='emacs -nw'
 alias eamcs='emacs'
 alias emcas='emacs'
+alias emacs27='/usr/bin/emacs' ## escape hatch to the system default emacs27
 alias celar='clear'
 alias lcear='clear'
 alias prof='emacs ~/.bashrc; source ~/.bashrc;'
+alias kprof='emacs ~/.config/kitty/kitty.conf ~/.config/kitty/seashells.conf' ## edit the kitty.conf for kiTTY terminal
 alias profile='prof'
 alias aliases='emacs ~/.aliases; source ~/.aliases'
 alias reprof='source ~/.bashrc'
@@ -27,7 +35,9 @@ alias netstar='echo `whoamip` | sed -E "s/\.+[0-9]+$/\.\*/"'
 #alias scan= echo `netlist` |  xargs -I _ arping -c 1 _
 ## ipconfig getifaddr en0 | sed -E "s/\.+[0-9]+$/\.\*/" | ruby -ne '(1..255).each {|i| print $_.gsub("*", i.to_s) }' | xargs -I _ arping -c 1 _
 alias fd='fdfind'
+alias el='kill -9 $(pidof element-desktop) 2>&1 >/dev/null && nohup element-desktop 2>&1 >/dev/null & disown'
 
+alias x='echo "xset r off" &&  xset r off' ## use this for games
 alias xclip='xclip -selection clipboard'
 alias localhost='whoamip'
 alias nmap='grc nmap'
@@ -36,7 +46,7 @@ alias dig='grc dig'
 alias nslookup='grc nslookup'
 
 #alias netlist = echo `netstar` | ruby -ne '(1..255).each {|i| print $_.gsub("*", i.to_s) }' ## TODO: turn this into an alias somehow
-alias poke='sudo nmap -PA -Pn -A'
+alias poke='sudo nmap -T2 -PA -Pn -A'
 alias discover='poke `netstar`' ## Quick näive network discovery
 alias hist='bat ~/.bash_history'
 alias m='export BOOKMARK=$PWD; echo "Bookmarked $BOOKMARK"'
@@ -46,11 +56,54 @@ alias cdm='cd $BOOKMARK'
 alias mv='mv -v'
 alias cp='cp -v'
 alias fc='fc -e "emacs"'
-#alias 'gi tst'='git st'
-alias br="git br | fzf | xclip"
-#alias br="git br | fzf | xclip && git co $(xclip -o | awk '{$1=$1};1')"
 
-alias rem='git remote get-url --all origin'
+###############
+# Git Aliases #
+###############
+
+#alias 'gi tst'='git st'
+alias st='echo "git status" && git status'
+alias gst='echo "git status" && git status'
+alias ga='git add'
+alias gap='git add -p'
+alias gc='git commit'
+alias gco='git checkout'
+alias gd='git diff'
+alias gcm='git commit -m'
+alias gam='git commit -am'
+alias gcam='gam'
+alias gp='echo "git push" && git push'
+alias grem='git remote get-url --all origin'
+alias rem='grem'
+alias unstage='echo "git restore --staged" && git restore --staged'
+alias restore='unstage'
+alias gu='unstage'
+alias gr='unstage'
+alias gb='git checkout -b'
+alias gcob='git checkout -b'
+
+function br() {
+    BRANCH=$(git br | fzf);
+    git co $BRANCH
+}
+
+function up() {
+    BRANCH=`git branch | rg '\*' | sed 's/\*//' | tr -d [:space:]`
+
+    if [ -n "$BRANCH" ]; then
+        COMMAND="git push --set-upstream origin $BRANCH"
+        echo $COMMAND && eval $COMMAND
+    else
+        echo "Unable to parse branch name, are you in a git repository? Exit status: $? \$BRANCH: '$BRANCH'"
+    fi
+}
+
+###################
+# End Git Aliases #
+###################
+
+alias ltspice='wine ~/.wine/drive_c/Program\ Files/LTC/LTspiceXVII/XVIIx64.exe & disown' ## Launch LTSpice with Wine (background, and disown so shell exit doensn't kill it)
+
 alias b='rake install'
 alias deft='emacs --eval "(deft)"'
 alias clear='ruby -e "100.times {|i| puts }"; clear'
@@ -89,13 +142,12 @@ alias cdm='cd $BOOKMARK'
 alias mv='mv -v'
 alias cp='cp -v'
 alias fc='fc -e "emacs"'
-alias rem='git remote get-url --all origin'
+
 alias b='rake install'
 alias deft='emacs --eval "(deft)"'
 alias clear='ruby -e "100.times {|i| puts }"; clear'
 alias pwsqr='pwsqr --offline'
 alias fortune='fortune | lolcat'
-alias shred='gshred'
 
 alias gigs="grep -E \"^[[:space:]]*[0-9]*\.*[0-9]+G{1}"\"
 alias net="emacs ~/net/programs_to_know.txt"
@@ -105,4 +157,105 @@ alias tail='grc tail'
 alias 'ps'='grc ps'
 alias fgfg='fg' ## Because I'm silly
 alias e='emacs -nw'
-alias respects='echo -n 'f' | pbcopy'
+alias bat='bat -p'
+alias sl='sl -lae'
+alias docekr='docker'
+#alias 'docker-compose'='docker compose'
+alias frg='rg -F' ## frg is to rg as fgrep is to grep
+
+## pgcli postgress client
+alias pgcli='pgcli --warn all' ## be paranoid and warn about destructive db tasks
+alias pg='pgcli'
+
+function path() { 
+    ## Print a path of a file relative to ~
+    ## e.g. `path baz.txt` => "~/subdir/foo/bar/baz.txt"
+    
+    local relpath=$(echo ${PWD/#$HOME//~} | sed 's/^\///')
+    echo -n "$relpath/$1"
+}
+
+# testdiff() { ## for CS4400 assignment 4, the shell
+#    delta <(make "test$1" 2>&1) <(make "rtest$1" 2>&1);
+# }
+
+# Just the diff lines
+textdiff() { diff -u <(make "test$1" 2>&1) <(make "rtest$1" 2>&1); }
+
+# Enhanced testdiff that shows visual AND copies text diff
+testdiff() { 
+    local test="$1"
+    diff -u <(make "test$test" 2>&1) <(make "rtest$test" 2>&1) | xclip
+    delta <(make "test$test" 2>&1) <(make "rtest$test" 2>&1)
+    echo "Diff copied to clipboard!"
+}
+
+## Sanity checks on basic secrets/env files. NOT comprehensive, use common sense.
+function ensure_no_priv_keys() {
+    PRIVATE_KEYS=$(rg -l 'PRIVATE KEY' --glob '!node_modules' --glob '!*.md')
+
+    if [ -n "$PRIVATE_KEYS" ]; then
+        printf "ERR: The following files may contain private keys!\n\n$PRIVATE_KEYS\n\n";
+        return 1;
+    else
+        return 0;
+    fi
+}
+
+function ensure_no_dotenv() {
+    ENV_FILES=$(fd -HI ".*\.env.*"  -E node_modules -E "*example*")
+
+    if [ -n "$ENV_FILES" ]; then
+        printf "ERR: Found the following env files!\n\n$ENV_FILES\n\n";
+        return 1;
+    else
+        return 0;
+    fi
+}
+
+function ensure_home_subdir() {
+    REAL_PWD=$(realpath "$PWD") ## realpath will follow symlinks
+
+    case $REAL_PWD in
+        "$HOME"/*)
+            return 0;
+            ;;
+        *)
+            return 1;
+    esac
+}
+
+## stretch goal for this one: check if JWTs are active(?) Mebbe
+# function ensure_no_jwt() { } ## TODO WRITEME
+
+# Claude Sandboxing:
+function claude() {
+    if ! ensure_home_subdir; then
+        echo "claude must only be run in subdirectories of the home directory! (e.g. $HOME/*) Aborting...";
+        return 1;
+    elif ! ensure_no_dotenv; then
+        echo "Refusing to run claude in directories with .env files or other similar secret files. Aborting...";
+        return 1;
+    elif ! ensure_no_priv_keys; then
+        echo "Refusing to run claude where private keys may be exposed to the agent. Aborting...";
+        return 1;
+    else
+        export SANDBOX_REPO=~/ADVANSTAFF/src/claude-sandbox ## or wherever you've cloned the sandbox project
+        export MOUNT_PT=$(basename $PWD) ## this is the directory name that gets mounted into the sandbox container
+        export CURR_DIR=$PWD
+        echo "Invoking claude in a reasonably secure sandbox..."
+        just --justfile $SANDBOX_REPO/Justfile agent
+
+        return 0;
+    fi
+}
+
+## Kittens (for the kitty terminal emulator)
+
+## Leaving here for reference but the ssh kitten does copy some of its own config files to the server,
+## which is fine in theory but is not great for a work server that you don't own etc.
+#alias ssh='kitten ssh' ## makes ssh sessions play nice with the kitty terminal
+alias icat='kitten icat' ## kitty: display images in the terminal (image-cat)
+
+
+
