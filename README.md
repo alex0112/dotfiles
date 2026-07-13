@@ -9,7 +9,7 @@
 - OS/Distro/Kernel: Linux
   - Usually [Debian](https://www.debian.org/) or [Ubuntu](https://ubuntu.com/desktop)
   - FreeBSD once upon a time
-  - MacOS for while (usually because of a job)
+  - MacOS for a while (usually because of a job)
 - Shell:
   - I stick to bash these days, though I'm interested in [oils](https://oils.pub/), [elvish](https://elv.sh/), and [nushell](https://elv.sh/)
 - Theme/Colors: Modified version of [Sea Shells](https://github.com/mbadolato/iterm2-color-schemes#sea-shells)
@@ -29,3 +29,4 @@
 - [fd](https://github.com/sharkdp/fd) (`find` alternative)
 - [btop](https://github.com/aristocratos/btop) (`top` alternative)
 - [just](https://github.com/casey/just) (`make` alternative)
+- [PaperWM](https://github.com/paperwm/paperwm) (makes GNOME shell behave like a stack-based tiling WM)
