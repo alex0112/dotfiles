@@ -393,7 +393,10 @@
 ;;   - https://xkcd.com/519/ (perhaps the most specifically relatable xkcd for me)
 
 ;;; Rust!
-(use-package rust-mode)
+(use-package rust-mode
+  :config
+  (setq compile-command "cargo check")
+)
 
 ;; Notes:
 ;;  I used to have the whole uncommented rustic mode thing working but it was driving me up the wall.
